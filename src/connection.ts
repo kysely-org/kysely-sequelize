@@ -81,6 +81,7 @@ export class KyselySequelizeConnection implements DatabaseConnection {
 
   #translateTransactionSettings(settings: TransactionSettings): TransactionOptions {
     return {
+      autocommit: false,
       ...(settings.isolationLevel ? {isolationLevel: ISOLATION_LEVELS[settings.isolationLevel]} : {}),
     }
   }
