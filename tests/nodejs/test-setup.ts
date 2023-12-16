@@ -1,4 +1,5 @@
 import {
+  CamelCasePlugin,
   Kysely,
   MysqlAdapter,
   MysqlIntrospector,
@@ -9,45 +10,21 @@ import {
   SqliteAdapter,
   SqliteIntrospector,
   SqliteQueryCompiler,
-  sql,
-  type ColumnType,
   type Compilable,
   type Dialect,
-  type Generated,
-  type InsertObject,
-  type InsertQueryBuilder,
-  type InsertResult,
-  type KyselyConfig,
   type KyselyPlugin,
-  type SchemaModule,
 } from 'kysely'
-import {Sequelize} from 'sequelize'
-import {KyselySequelizeDialect, type KyselySequelizeDialectConfig} from '../../src/index.js'
+import {PoolOptions} from 'sequelize'
+import {ModelCtor, Sequelize, SequelizeOptions} from 'sequelize-typescript'
+import {Kyselify, KyselySequelizeDialect, type KyselySequelizeDialectConfig} from '../../src/index.js'
 import type {SupportedDialect} from '../../src/supported-dialects.js'
+import {PersonCreationAttributes, PersonModel} from './models/person.model.js'
+import {PetCreationAttributes, PetModel} from './models/pet.model.js'
+import {ToyCreationAttributes, ToyModel} from './models/toy.model.js'
 
-export interface Person {
-  id: Generated<number>
-  first_name: string | null
-  middle_name: ColumnType<string | null, string | undefined, string | undefined>
-  last_name: string | null
-  gender: 'male' | 'female' | 'other'
-  marital_status: 'single' | 'married' | 'divorced' | 'widowed' | null
-  children: Generated<number>
-}
-
-export interface Pet {
-  id: Generated<number>
-  name: string
-  owner_id: number
-  species: 'dog' | 'cat' | 'hamster'
-}
-
-export interface Toy {
-  id: Generated<number>
-  name: string
-  price: number
-  pet_id: number
-}
+type Person = Kyselify<PersonCreationAttributes>
+type Pet = Kyselify<PetCreationAttributes>
+type Toy = Kyselify<ToyCreationAttributes>
 
 export interface Database {
   person: Person
@@ -56,23 +33,22 @@ export interface Database {
   'toy_schema.toy': Toy
 }
 
-interface PersonInsertParams extends InsertObject<Database, 'person'> {
+interface PersonInsertParams extends PersonCreationAttributes {
   pets?: PetInsertParams[]
 }
 
-interface PetInsertParams extends Omit<Pet, 'id' | 'owner_id'> {
-  toys?: Omit<Toy, 'id' | 'pet_id'>[]
+interface PetInsertParams extends Omit<PetCreationAttributes, 'ownerId'> {
+  toys?: Omit<ToyCreationAttributes, 'petId'>[]
 }
 
 export interface TestContext {
-  dialect: SupportedDialect
-  config: KyselyConfig
-  db: Kysely<Database>
+  kysely: Kysely<Database>
+  sequelize: Sequelize
 }
 
 export type PerDialect<T> = Record<SupportedDialect, T>
 
-const TEST_INIT_TIMEOUT = 5 * 60 * 1000
+const TEST_INIT_TIMEOUT = 5 * 60 * 1_000
 
 export const PLUGINS: KyselyPlugin[] = []
 
@@ -98,10 +74,19 @@ const sqliteDialect: DriverlessDialect = {
   createQueryCompiler: () => new SqliteQueryCompiler(),
 }
 
-export const CONFIGS: Record<SupportedDialect, KyselySequelizeDialectConfig> = {
+const models = [PersonModel, PetModel, ToyModel] satisfies ModelCtor[]
+const pool = {max: POOL_SIZE, min: 0} satisfies PoolOptions
+const plugins = [new CamelCasePlugin({maintainNestedObjectKeys: true})] satisfies KyselyPlugin[]
+
+export const CONFIGS: Record<
+  SupportedDialect,
+  Omit<KyselySequelizeDialectConfig, 'sequelize'> & {
+    sequelizeConfig: SequelizeOptions
+  }
+> = {
   mysql: {
     kyselyDialect: mysqlDialect,
-    sequelize: new Sequelize({
+    sequelizeConfig: {
       database: 'kysely_test',
       dialect: 'mysql',
       dialectOptions: {
@@ -110,94 +95,110 @@ export const CONFIGS: Record<SupportedDialect, KyselySequelizeDialectConfig> = {
         bigNumbersStrings: true,
       },
       host: 'localhost',
+      models,
       password: 'kysely',
-      pool: {max: POOL_SIZE, min: 0},
+      pool,
       port: 3308,
       username: 'kysely',
-    }),
+    },
   },
   postgres: {
     kyselyDialect: postgresDialect,
-    sequelize: new Sequelize({
+    sequelizeConfig: {
       database: 'kysely_test',
       dialect: 'postgres',
       host: 'localhost',
-      pool: {max: POOL_SIZE, min: 0},
+      models,
+      pool,
       port: 5434,
       username: 'kysely',
-    }),
+    },
   },
   sqlite: {
     kyselyDialect: sqliteDialect,
-    sequelize: new Sequelize({
+    sequelizeConfig: {
       dialect: 'sqlite',
+      models,
+      pool,
       storage: ':memory:',
-    }),
+    },
   },
 }
 
 export async function initTest(ctx: Mocha.Context, dialect: SupportedDialect): Promise<TestContext> {
   const config = CONFIGS[dialect]
-  const kyselyConfig = {dialect: new KyselySequelizeDialect(config)}
+
+  const sequelize = new Sequelize(config.sequelizeConfig)
 
   ctx.timeout(TEST_INIT_TIMEOUT)
-  const db = await connect(kyselyConfig)
+  await sequelize.authenticate({
+    retry: {
+      backoffBase: 1_000,
+      backoffExponent: 1,
+      max: TEST_INIT_TIMEOUT / 1_000,
+      timeout: TEST_INIT_TIMEOUT,
+    },
+  })
 
-  await createDatabase(db, dialect)
+  await sequelize.drop()
+  await sequelize.sync()
 
-  return {config: kyselyConfig, db, dialect}
+  const kysely = new Kysely<Database>({
+    dialect: new KyselySequelizeDialect({...config, sequelize}),
+    plugins,
+  })
+
+  return {kysely, sequelize}
 }
 
 export async function destroyTest(ctx: TestContext): Promise<void> {
-  await dropDatabase(ctx.db)
-  await ctx.db.destroy()
+  await ctx.sequelize.drop()
+  await ctx.kysely.destroy()
 }
 
-export async function insertPersons(ctx: TestContext, insertPersons: PersonInsertParams[]): Promise<void> {
-  for (const insertPerson of insertPersons) {
-    const {pets, ...person} = insertPerson
-
-    const personId = await insert(ctx, ctx.db.insertInto('person').values({...person}))
-
-    for (const insertPet of pets ?? []) {
-      await insertPetForPerson(ctx, personId, insertPet)
-    }
-  }
+export async function seedDatabase(): Promise<void> {
+  await PersonModel.bulkCreate(DEFAULT_DATA_SET, {
+    include: [
+      {
+        as: 'pets',
+        model: PetModel,
+        include: [
+          {
+            as: 'toys',
+            model: ToyModel,
+          },
+        ],
+      },
+    ],
+  })
 }
 
 export const DEFAULT_DATA_SET: PersonInsertParams[] = [
   {
-    first_name: 'Jennifer',
-    last_name: 'Aniston',
+    firstName: 'Jennifer',
+    middleName: null,
+    lastName: 'Aniston',
     gender: 'female',
     pets: [{name: 'Catto', species: 'cat'}],
-    marital_status: 'divorced',
+    maritalStatus: 'divorced',
   },
   {
-    first_name: 'Arnold',
-    last_name: 'Schwarzenegger',
+    firstName: 'Arnold',
+    middleName: null,
+    lastName: 'Schwarzenegger',
     gender: 'male',
     pets: [{name: 'Doggo', species: 'dog'}],
-    marital_status: 'divorced',
+    maritalStatus: 'divorced',
   },
   {
-    first_name: 'Sylvester',
-    last_name: 'Stallone',
+    firstName: 'Sylvester',
+    middleName: 'Rocky',
+    lastName: 'Stallone',
     gender: 'male',
     pets: [{name: 'Hammo', species: 'hamster'}],
-    marital_status: 'married',
+    maritalStatus: 'married',
   },
 ]
-
-export async function insertDefaultDataSet(ctx: TestContext): Promise<void> {
-  await insertPersons(ctx, DEFAULT_DATA_SET)
-}
-
-export async function clearDatabase(ctx: TestContext): Promise<void> {
-  await ctx.db.deleteFrom('toy').execute()
-  await ctx.db.deleteFrom('pet').execute()
-  await ctx.db.deleteFrom('person').execute()
-}
 
 export function testSql(
   query: Compilable,
@@ -212,138 +213,4 @@ export function testSql(
   chai.expect(expected.parameters).to.eql(sql.parameters)
 }
 
-async function createDatabase(db: Kysely<Database>, dialect: SupportedDialect): Promise<void> {
-  await dropDatabase(db)
-
-  await createTableWithId(db.schema, dialect, 'person')
-    .addColumn('first_name', 'varchar(255)')
-    .addColumn('middle_name', 'varchar(255)')
-    .addColumn('last_name', 'varchar(255)')
-    .addColumn('gender', 'varchar(50)', (col) => col.notNull())
-    .addColumn('marital_status', 'varchar(50)')
-    .addColumn('children', 'integer', (col) => col.notNull().defaultTo(0))
-    .execute()
-
-  await createTableWithId(db.schema, dialect, 'pet')
-    .addColumn('name', 'varchar(255)', (col) => col.unique().notNull())
-    .addColumn('owner_id', 'integer', (col) => col.references('person.id').onDelete('cascade').notNull())
-    .addColumn('species', 'varchar(50)', (col) => col.notNull())
-    .execute()
-
-  await createTableWithId(db.schema, dialect, 'toy')
-    .addColumn('name', 'varchar(255)', (col) => col.notNull())
-    .addColumn('pet_id', 'integer', (col) => col.references('pet.id').notNull())
-    .addColumn('price', 'double precision', (col) => col.notNull())
-    .execute()
-
-  await db.schema.createIndex('pet_owner_id_index').on('pet').column('owner_id').execute()
-}
-
-export function createTableWithId(schema: SchemaModule, dialect: SupportedDialect, tableName: string) {
-  const builder = schema.createTable(tableName)
-
-  if (dialect === 'postgres') {
-    return builder.addColumn('id', 'serial', (col) => col.primaryKey())
-  }
-
-  //   if (dialect === 'mssql') {
-  //     return builder.addColumn('id', 'integer', (col) =>
-  //       col
-  //         .notNull()
-  //         // TODO: change to method when its implemented
-  //         .modifyFront(sql`identity(1,1)`)
-  //         .primaryKey(),
-  //     )
-  //   }
-
-  return builder.addColumn('id', 'integer', (col) => col.autoIncrement().primaryKey())
-}
-
-async function connect(config: KyselyConfig): Promise<Kysely<Database>> {
-  for (let i = 0; i < TEST_INIT_TIMEOUT; i += 1000) {
-    let db: Kysely<Database> | undefined
-
-    try {
-      db = new Kysely<Database>(config)
-      await sql`select 1`.execute(db)
-      return db
-    } catch (error) {
-      console.error(error)
-
-      if (db) {
-        await db.destroy().catch((error) => error)
-      }
-
-      console.log('Waiting for the database to become available. Did you remember to run `docker-compose up`?')
-
-      await sleep(1000)
-    }
-  }
-
-  throw new Error('could not connect to database')
-}
-
-async function dropDatabase(db: Kysely<Database>): Promise<void> {
-  await db.schema.dropTable('toy').ifExists().execute()
-  await db.schema.dropTable('pet').ifExists().execute()
-  await db.schema.dropTable('person').ifExists().execute()
-}
-
 export const expect = chai.expect
-
-async function insertPetForPerson(ctx: TestContext, personId: number, insertPet: PetInsertParams): Promise<void> {
-  const {toys, ...pet} = insertPet
-
-  const petId = await insert(ctx, ctx.db.insertInto('pet').values({...pet, owner_id: personId}))
-
-  for (const toy of toys ?? []) {
-    await insertToysForPet(ctx, petId, toy)
-  }
-}
-
-async function insertToysForPet(ctx: TestContext, petId: number, toy: Omit<Toy, 'id' | 'pet_id'>): Promise<void> {
-  await ctx.db
-    .insertInto('toy')
-    .values({...toy, pet_id: petId})
-    .executeTakeFirst()
-}
-
-export async function insert<TB extends keyof Database>(
-  ctx: TestContext,
-  qb: InsertQueryBuilder<Database, TB, InsertResult>,
-): Promise<number> {
-  const {dialect} = ctx
-
-  if (dialect === 'postgres' || dialect === 'sqlite') {
-    const {id} = await qb.returning('id').executeTakeFirstOrThrow()
-
-    return id
-  }
-
-  //   if (dialect === 'mssql') {
-  //     // TODO: use insert into "table" (...) output inserted.id values (...) when its implemented
-  //     return await ctx.db.connection().execute(async (db) => {
-  //       await qb.executeTakeFirstOrThrow()
-
-  //       const {query} = qb.compile()
-
-  //       const table =
-  //         query.kind === 'InsertQueryNode' &&
-  //         [query.into.table.schema?.name, query.into.table.identifier.name].filter(Boolean).join('.')
-
-  //       const {
-  //         rows: [{id}],
-  //       } = await sql<{id: number}>`select IDENT_CURRENT(${sql.lit(table)}) as id`.execute(db)
-
-  //       return Number(id)
-  //     })
-  //   }
-
-  const {insertId} = await qb.executeTakeFirstOrThrow()
-
-  return Number(insertId)
-}
-
-function sleep(millis: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, millis))
-}
