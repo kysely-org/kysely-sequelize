@@ -1,5 +1,5 @@
 import {Optional} from 'sequelize'
-import {BelongsTo, Column, DataType, ForeignKey, HasMany, Index, Model, Table} from 'sequelize-typescript'
+import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from 'sequelize-typescript'
 import {PersonModel} from './person.model.js'
 import {ToyModel} from './toy.model.js'
 
@@ -27,14 +27,20 @@ export interface PetAttributes {
 
 export type PetCreationAttributes = Optional<PetAttributes, 'id'>
 
-@Table({modelName: 'Pet', tableName: 'pet', timestamps: false, underscored: true})
+@Table({
+  modelName: 'Pet',
+  // https://github.com/sequelize/sequelize-typescript/issues/725
+  indexes: [{fields: ['owner_id'], name: 'pet_owner_id_index'}],
+  tableName: 'pet',
+  timestamps: false,
+  underscored: true,
+})
 export class PetModel extends Model<PetAttributes, PetCreationAttributes> {
   @Column({allowNull: false, type: DataType.STRING(255)})
   name: PetAttributes['name']
 
   @Column({allowNull: false, onDelete: 'CASCADE', type: DataType.INTEGER})
   @ForeignKey(() => PersonModel)
-  @Index('pet_owner_id_index')
   ownerId: PetAttributes['ownerId']
 
   @Column({allowNull: false, type: DataType.STRING(50)})

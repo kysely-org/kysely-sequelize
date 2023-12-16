@@ -1,6 +1,6 @@
 import type {Dialect} from 'sequelize'
 
-const SUPPORTED_DIALECTS = [
+export const SUPPORTED_DIALECTS = [
   // 'mariadb',
   // 'mssql',
   'mysql',

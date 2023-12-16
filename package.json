@@ -67,6 +67,7 @@
     "mocha-each": "^2.0.1",
     "mysql2": "^3.6.5",
     "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
     "prettier": "^2.8.7",
     "prettier-plugin-organize-imports": "^3.2.2",
     "prettier-plugin-pkg": "^0.17.1",

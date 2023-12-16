@@ -1,3 +1,4 @@
+import * as chai from 'chai'
 import {
   CamelCasePlugin,
   Kysely,
@@ -156,7 +157,7 @@ export async function destroyTest(ctx: TestContext): Promise<void> {
   await ctx.kysely.destroy()
 }
 
-export async function seedDatabase(): Promise<void> {
+export async function seedDatabase(_ctx: TestContext): Promise<void> {
   await PersonModel.bulkCreate(DEFAULT_DATA_SET, {
     include: [
       {
