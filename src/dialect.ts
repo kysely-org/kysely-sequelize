@@ -12,18 +12,18 @@ export class KyselySequelizeDialect implements Dialect {
   }
 
   createAdapter(): DialectAdapter {
-    return this.#config.kyselyDialect.createAdapter()
+    return this.#config.kyselySubDialect.createAdapter()
   }
 
   createDriver(): Driver {
-    return new KyselySequelizeDriver(this.#config.sequelize)
+    return new KyselySequelizeDriver(this.#config)
   }
 
   createIntrospector(db: Kysely<any>): DatabaseIntrospector {
-    return this.#config.kyselyDialect.createIntrospector(db)
+    return this.#config.kyselySubDialect.createIntrospector(db)
   }
 
   createQueryCompiler(): QueryCompiler {
-    return this.#config.kyselyDialect.createQueryCompiler()
+    return this.#config.kyselySubDialect.createQueryCompiler()
   }
 }

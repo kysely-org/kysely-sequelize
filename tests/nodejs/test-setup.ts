@@ -12,12 +12,11 @@ import {
   SqliteIntrospector,
   SqliteQueryCompiler,
   type Compilable,
-  type Dialect,
   type KyselyPlugin,
 } from 'kysely'
 import {PoolOptions} from 'sequelize'
 import {ModelCtor, Sequelize, SequelizeOptions} from 'sequelize-typescript'
-import {Kyselify, KyselySequelizeDialect, type KyselySequelizeDialectConfig} from '../../src/index.js'
+import {Kyselify, KyselySequelizeDialect, KyselySubDialect, type KyselySequelizeDialectConfig} from '../../src/index.js'
 import type {SupportedDialect} from '../../src/supported-dialects.js'
 import {PersonCreationAttributes, PersonModel} from './models/person.model.js'
 import {PetCreationAttributes, PetModel} from './models/pet.model.js'
@@ -55,21 +54,19 @@ export const PLUGINS: KyselyPlugin[] = []
 
 export const POOL_SIZE = 20
 
-type DriverlessDialect = Omit<Dialect, 'createDriver'>
-
-const postgresDialect: DriverlessDialect = {
+const postgresSubDialect: KyselySubDialect = {
   createAdapter: () => new PostgresAdapter(),
   createIntrospector: (db) => new PostgresIntrospector(db),
   createQueryCompiler: () => new PostgresQueryCompiler(),
 }
 
-const mysqlDialect: DriverlessDialect = {
+const mysqlSubDialect: KyselySubDialect = {
   createAdapter: () => new MysqlAdapter(),
   createIntrospector: (db) => new MysqlIntrospector(db),
   createQueryCompiler: () => new MysqlQueryCompiler(),
 }
 
-const sqliteDialect: DriverlessDialect = {
+const sqliteSubDialect: KyselySubDialect = {
   createAdapter: () => new SqliteAdapter(),
   createIntrospector: (db) => new SqliteIntrospector(db),
   createQueryCompiler: () => new SqliteQueryCompiler(),
@@ -86,14 +83,14 @@ export const CONFIGS: Record<
   }
 > = {
   mysql: {
-    kyselyDialect: mysqlDialect,
+    kyselySubDialect: mysqlSubDialect,
     sequelizeConfig: {
       database: 'kysely_test',
       dialect: 'mysql',
       dialectOptions: {
         // Return big numbers as strings just like pg does.
         supportBigNumbers: true,
-        bigNumbersStrings: true,
+        bigNumberStrings: true,
       },
       host: 'localhost',
       models,
@@ -104,7 +101,7 @@ export const CONFIGS: Record<
     },
   },
   postgres: {
-    kyselyDialect: postgresDialect,
+    kyselySubDialect: postgresSubDialect,
     sequelizeConfig: {
       database: 'kysely_test',
       dialect: 'postgres',
@@ -115,15 +112,15 @@ export const CONFIGS: Record<
       username: 'kysely',
     },
   },
-  sqlite: {
-    kyselyDialect: sqliteDialect,
-    sequelizeConfig: {
-      dialect: 'sqlite',
-      models,
-      pool,
-      storage: ':memory:',
-    },
-  },
+  //   sqlite: {
+  //     kyselySubDialect: sqliteSubDialect,
+  //     sequelizeConfig: {
+  //       dialect: 'sqlite',
+  //       models,
+  //       pool,
+  //       storage: ':memory:',
+  //     },
+  //   },
 }
 
 export async function initTest(ctx: Mocha.Context, dialect: SupportedDialect): Promise<TestContext> {

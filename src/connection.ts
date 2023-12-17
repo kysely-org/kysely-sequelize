@@ -1,11 +1,11 @@
-import type {CompiledQuery, DatabaseConnection, QueryResult, TransactionSettings} from 'kysely'
-import type {Sequelize, Transaction, TransactionOptions} from 'sequelize'
+import {type CompiledQuery, type DatabaseConnection, type QueryResult, type TransactionSettings} from 'kysely'
+import {QueryTypes, type Sequelize, type Transaction, type TransactionOptions} from 'sequelize'
 import {ISOLATION_LEVELS} from './isolation-levels.js'
 
 export class KyselySequelizeConnection implements DatabaseConnection {
   readonly #sequelize: Sequelize
+  #connection?: unknown
   #transaction?: Transaction
-  #underlyingConnection?: object
 
   constructor(sequelize: Sequelize) {
     this.#sequelize = sequelize
@@ -29,9 +29,9 @@ export class KyselySequelizeConnection implements DatabaseConnection {
   }
 
   release(): void {
-    if (this.#underlyingConnection) {
-      this.#sequelize.connectionManager.releaseConnection(this.#underlyingConnection)
-      this.#underlyingConnection = undefined
+    if (this.#connection) {
+      this.#sequelize.connectionManager.releaseConnection(this.#connection)
+      this.#connection = undefined
     }
   }
 
@@ -45,30 +45,15 @@ export class KyselySequelizeConnection implements DatabaseConnection {
   }
 
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-    if (this.#transaction) {
-      const results = await this.#sequelize.query(
-        {query: compiledQuery.sql, values: [...compiledQuery.parameters]},
-        {transaction: this.#transaction},
-      )
+    const queryOptions = await this.#getQueryOptions(compiledQuery)
 
-      console.log('results', results)
+    const [rows, ...huh] = await this.#sequelize.query(compiledQuery.sql, queryOptions)
 
-      return {
-        rows: [],
-      }
-    }
-
-    if (!this.#underlyingConnection) {
-      // since we can't know if we're in single connection multi-query mode or not,
-      // we'll always use the write connection.
-      this.#underlyingConnection = await this.#sequelize.connectionManager.getConnection({type: 'write'})
-    }
-
-    console.log('this.#underlyingConnection', this.#underlyingConnection)
-    console.log('this.#underlyingConnection.query', (this.#underlyingConnection as any)['query'])
+    console.log('rows', rows)
+    console.log('huh', huh)
 
     return {
-      rows: [],
+      rows: rows as R[],
     }
   }
 
@@ -83,6 +68,36 @@ export class KyselySequelizeConnection implements DatabaseConnection {
     return {
       autocommit: false,
       ...(settings.isolationLevel ? {isolationLevel: ISOLATION_LEVELS[settings.isolationLevel]} : {}),
+    }
+  }
+
+  async #getQueryOptions(compiledQuery: CompiledQuery<unknown>) {
+    const queryType = {
+      [compiledQuery.query.kind]: QueryTypes.RAW,
+      ['SelectQueryNode']: QueryTypes.SELECT,
+      ['InsertQueryNode']: QueryTypes.INSERT,
+      ['UpdateQueryNode']: QueryTypes.UPDATE,
+      ['DeleteQueryNode']: QueryTypes.DELETE,
+    }[compiledQuery.query.kind]
+
+    const paramsKey = this.#sequelize.getDialect() === 'mysql' ? 'replacements' : 'bind'
+
+    if (this.#transaction) {
+      return {
+        [paramsKey]: [...compiledQuery.parameters],
+        queryType,
+        transaction: this.#transaction,
+      }
+    }
+
+    if (!this.#connection) {
+      this.#connection = await this.#sequelize.connectionManager.getConnection({type: 'write'})
+    }
+
+    return {
+      [paramsKey]: [...compiledQuery.parameters],
+      queryType,
+      transaction: {connection: this.#connection} as unknown as Transaction,
     }
   }
 }

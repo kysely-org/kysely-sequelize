@@ -1,12 +1,13 @@
 import type {DatabaseConnection, Driver, TransactionSettings} from 'kysely'
 import {Sequelize} from 'sequelize'
+import {KyselySequelizeDialectConfig} from './config.js'
 import {KyselySequelizeConnection} from './connection.js'
 
 export class KyselySequelizeDriver implements Driver {
   readonly #sequelize: Sequelize
 
-  constructor(sequelize: Sequelize) {
-    this.#sequelize = sequelize
+  constructor(config: KyselySequelizeDialectConfig) {
+    this.#sequelize = config.sequelize
   }
 
   async acquireConnection(): Promise<DatabaseConnection> {
