@@ -1,6 +1,7 @@
 import {type CompiledQuery, type DatabaseConnection, type QueryResult, type TransactionSettings} from 'kysely'
 import {QueryTypes, type Sequelize, type Transaction, type TransactionOptions} from 'sequelize'
 import {ISOLATION_LEVELS} from './isolation-levels.js'
+import {isNumber} from './type-utils.js'
 
 export class KyselySequelizeConnection implements DatabaseConnection {
   readonly #sequelize: Sequelize
@@ -47,13 +48,12 @@ export class KyselySequelizeConnection implements DatabaseConnection {
   async executeQuery<R>(compiledQuery: CompiledQuery<unknown>): Promise<QueryResult<R>> {
     const queryOptions = await this.#getQueryOptions(compiledQuery)
 
-    const [rows, ...huh] = await this.#sequelize.query(compiledQuery.sql, queryOptions)
-
-    console.log('rows', rows)
-    console.log('huh', huh)
+    const [rows, metadata] = await this.#sequelize.query(compiledQuery.sql, queryOptions)
 
     return {
-      rows: rows as R[],
+      insertId: isNumber(rows) ? BigInt(rows) : undefined,
+      numAffectedRows: isNumber(metadata) ? BigInt(metadata) : undefined,
+      rows: isNumber(rows) ? [] : (rows as R[]),
     }
   }
 

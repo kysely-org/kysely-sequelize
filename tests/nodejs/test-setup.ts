@@ -93,6 +93,7 @@ export const CONFIGS: Record<
         bigNumberStrings: true,
       },
       host: 'localhost',
+      logging: false,
       models,
       password: 'kysely',
       pool,
@@ -106,6 +107,7 @@ export const CONFIGS: Record<
       database: 'kysely_test',
       dialect: 'postgres',
       host: 'localhost',
+      logging: false,
       models,
       pool,
       port: 5434,
@@ -147,11 +149,6 @@ export async function initTest(ctx: Mocha.Context, dialect: SupportedDialect): P
   })
 
   return {kysely, sequelize}
-}
-
-export async function destroyTest(ctx: TestContext): Promise<void> {
-  await ctx.sequelize.drop()
-  await ctx.kysely.destroy()
 }
 
 export async function seedDatabase(_ctx: TestContext): Promise<void> {

@@ -1,40 +1,71 @@
+import {expect} from 'chai'
+import {jsonArrayFrom as jsonArrayFromMySQL} from 'kysely/helpers/mysql'
+import {jsonArrayFrom as jsonArrayFromPostgres} from 'kysely/helpers/postgres'
 import {SUPPORTED_DIALECTS} from '../../src/supported-dialects.js'
-import {TestContext, destroyTest, initTest, seedDatabase} from './test-setup.js'
+import {PersonModel} from './models/person.model.js'
+import {PetModel} from './models/pet.model.js'
+import {DEFAULT_DATA_SET, TestContext, initTest, seedDatabase} from './test-setup.js'
 
 for (const dialect of SUPPORTED_DIALECTS) {
   describe(`KyselySequelizeDialect: ${dialect}`, () => {
     let ctx: TestContext
 
+    const jsonArrayFrom = {
+      mysql: jsonArrayFromMySQL,
+      postgres: jsonArrayFromPostgres,
+    }[dialect]
+
     before(async function () {
       ctx = await initTest(this, dialect)
+    })
+
+    beforeEach(async () => {
       await seedDatabase(ctx)
     })
 
-    after(async () => {
-      await destroyTest(ctx)
+    afterEach(async () => {
+      await ctx.sequelize.truncate({cascade: true})
     })
 
-    it('should work', async () => {
-      //   const results = await ctx.kysely.selectFrom('person').selectAll().execute()
+    after(async () => {
+      await ctx.sequelize.drop()
+      await ctx.kysely.destroy()
+    })
 
-      //   console.log('results', results)
+    it('should be able to perform select queries', async () => {
+      const ormPeople = await PersonModel.findAll({
+        attributes: {exclude: ['id']},
+        include: [{attributes: {exclude: ['id', 'ownerId']}, model: PetModel}],
+      }).then((people) => people.map((person) => person.toJSON()))
 
-      //   await ctx.kysely.transaction().execute(async (trx) => {
-      //     const results = await trx.selectFrom('person').selectAll().execute()
+      expect(ormPeople).to.deep.equal(DEFAULT_DATA_SET)
 
-      //     console.log('results', results)
-      //   })
-
-      const result2 = await ctx.kysely
-        .insertInto('toy')
-        .values({
-          name: 'test',
-          petId: 2,
-          price: 12.2,
-        })
+      const queryBuilderPeople = await ctx.kysely
+        .selectFrom('person')
+        .select((eb) => [
+          'firstName',
+          'gender',
+          'lastName',
+          'maritalStatus',
+          'middleName',
+          jsonArrayFrom(
+            eb.selectFrom('pet').whereRef('pet.ownerId', '=', 'person.id').select(['pet.name', 'pet.species']),
+          ).as('pets'),
+        ])
         .execute()
 
-      console.log('result2', result2)
+      expect(queryBuilderPeople).to.deep.equal(ormPeople)
+    })
+
+    it('should be able to perform insert queries', async () => {
+      const results = await ctx.kysely.insertInto('person').values({gender: 'female'}).execute()
+
+      expect(results).to.deep.equal(
+        {
+          mysql: [{insertId: BigInt(DEFAULT_DATA_SET.length + 1), numInsertedOrUpdatedRows: BigInt(1)}],
+          postgres: [{insertId: undefined, numInsertedOrUpdatedRows: BigInt(1)}],
+        }[dialect],
+      )
     })
   })
 }
