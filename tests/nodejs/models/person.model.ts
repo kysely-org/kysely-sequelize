@@ -32,6 +32,8 @@ export type PersonCreationAttributes = Optional<PersonAttributes, 'id'>
 
 @Table({modelName: 'Person', tableName: 'person', timestamps: false, underscored: true})
 export class PersonModel extends Model<PersonAttributes, PersonCreationAttributes> {
+  declare id: PersonAttributes['id']
+
   @Column(DataType.STRING(255))
   firstName: PersonAttributes['firstName']
 

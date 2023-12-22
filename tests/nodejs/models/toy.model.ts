@@ -26,6 +26,8 @@ export type ToyCreationAttributes = Optional<ToyAttributes, 'id'>
 
 @Table({modelName: 'Toy', tableName: 'toy', timestamps: false, underscored: true})
 export class ToyModel extends Model<ToyAttributes, ToyCreationAttributes> {
+  declare id: ToyAttributes['id']
+
   @Column({allowNull: false, type: DataType.STRING(255)})
   name: ToyAttributes['name']
 

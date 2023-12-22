@@ -36,6 +36,8 @@ export type PetCreationAttributes = Optional<PetAttributes, 'id'>
   underscored: true,
 })
 export class PetModel extends Model<PetAttributes, PetCreationAttributes> {
+  declare id: PetAttributes['id']
+
   @Column({allowNull: false, type: DataType.STRING(255)})
   name: PetAttributes['name']
 
