@@ -70,6 +70,9 @@ devDependencies:
   kysely:
     specifier: ^0.26.3
     version: 0.26.3
+  kysely-master:
+    specifier: git+https://github.com/kysely-org/kysely.git#master
+    version: github.com/kysely-org/kysely/680eb46d257f58d437ad8f6334255b48d1e9722d
   mariadb:
     specifier: ^3.2.2
     version: 3.2.2
@@ -3941,4 +3944,11 @@ packages:
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+    dev: true
+
+  github.com/kysely-org/kysely/680eb46d257f58d437ad8f6334255b48d1e9722d:
+    resolution: {tarball: https://codeload.github.com/kysely-org/kysely/tar.gz/680eb46d257f58d437ad8f6334255b48d1e9722d}
+    name: kysely
+    version: 0.26.3
+    engines: {node: '>=14.0.0'}
     dev: true
