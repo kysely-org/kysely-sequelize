@@ -5,26 +5,38 @@ import {
   MysqlAdapter,
   MysqlIntrospector,
   MysqlQueryCompiler,
+  ParseJSONResultsPlugin,
   PostgresAdapter,
   PostgresIntrospector,
   PostgresQueryCompiler,
+  RawNode,
+  SelectQueryNode,
   SqliteAdapter,
   SqliteIntrospector,
   SqliteQueryCompiler,
   type Compilable,
   type KyselyPlugin,
+  type PluginTransformQueryArgs,
+  type PluginTransformResultArgs,
+  type QueryResult,
+  type RootOperationNode,
+  type UnknownRow,
 } from 'kysely'
-import {PoolOptions} from 'sequelize'
-import {ModelCtor, Sequelize, SequelizeOptions} from 'sequelize-typescript'
-import {Kyselify, KyselySequelizeDialect, KyselySubDialect, type KyselySequelizeDialectConfig} from '../../src/index.js'
+import {Sequelize, type SequelizeOptions} from 'sequelize-typescript'
+import {MssqlAdapter, MssqlIntrospector, MssqlQueryCompiler} from '../../node_modules/kysely-master/src'
+import {
+  KyselySequelizeDialect,
+  type KyselifyCreationAttributes,
+  type KyselySequelizeDialectConfig,
+} from '../../src/index.js'
 import type {SupportedDialect} from '../../src/supported-dialects.js'
-import {PersonCreationAttributes, PersonModel} from './models/person.model.js'
-import {PetCreationAttributes, PetModel} from './models/pet.model.js'
-import {ToyCreationAttributes, ToyModel} from './models/toy.model.js'
+import {PersonModel, type PersonCreationAttributes} from './models/person.model.js'
+import {PetModel, type PetCreationAttributes} from './models/pet.model.js'
+import {ToyModel, type ToyCreationAttributes} from './models/toy.model.js'
 
-type Person = Kyselify<PersonCreationAttributes>
-type Pet = Kyselify<PetCreationAttributes>
-type Toy = Kyselify<ToyCreationAttributes>
+export type Person = KyselifyCreationAttributes<PersonCreationAttributes>
+export type Pet = KyselifyCreationAttributes<PetCreationAttributes>
+export type Toy = KyselifyCreationAttributes<ToyCreationAttributes>
 
 export interface Database {
   person: Person
@@ -50,31 +62,52 @@ export type PerDialect<T> = Record<SupportedDialect, T>
 
 const TEST_INIT_TIMEOUT = 5 * 60 * 1_000
 
-export const PLUGINS: KyselyPlugin[] = []
+class UnwrapMssqlForJSONResultsPlugin implements KyselyPlugin {
+  #isForJSONQueryMap = new WeakMap<PluginTransformQueryArgs['queryId'], boolean>()
 
-export const POOL_SIZE = 20
+  transformQuery(args: PluginTransformQueryArgs): RootOperationNode {
+    const {node} = args
 
-const postgresSubDialect: KyselySubDialect = {
-  createAdapter: () => new PostgresAdapter(),
-  createIntrospector: (db) => new PostgresIntrospector(db),
-  createQueryCompiler: () => new PostgresQueryCompiler(),
+    this.#isForJSONQueryMap.set(
+      args.queryId,
+      SelectQueryNode.is(node) &&
+        Boolean(
+          node.endModifiers?.some(
+            ({rawModifier}) =>
+              rawModifier &&
+              RawNode.is(rawModifier) &&
+              rawModifier.sqlFragments.some((fragment) => /for json (path|auto)/i.test(fragment)),
+          ),
+        ),
+    )
+
+    return args.node
+  }
+
+  async transformResult(args: PluginTransformResultArgs): Promise<QueryResult<UnknownRow>> {
+    const {result} = args
+
+    if (!this.#isForJSONQueryMap.has(args.queryId)) {
+      return args.result
+    }
+
+    return {
+      ...result,
+      rows: result.rows.flatMap((row) => JSON.parse(Object.values(row)[0] as string)) as UnknownRow[],
+    }
+  }
 }
 
-const mysqlSubDialect: KyselySubDialect = {
-  createAdapter: () => new MysqlAdapter(),
-  createIntrospector: (db) => new MysqlIntrospector(db),
-  createQueryCompiler: () => new MysqlQueryCompiler(),
-}
+export const PLUGINS: KyselyPlugin[] = [
+  new CamelCasePlugin({maintainNestedObjectKeys: true}),
+  new ParseJSONResultsPlugin(),
+]
 
-const sqliteSubDialect: KyselySubDialect = {
-  createAdapter: () => new SqliteAdapter(),
-  createIntrospector: (db) => new SqliteIntrospector(db),
-  createQueryCompiler: () => new SqliteQueryCompiler(),
-}
-
-const models = [PersonModel, PetModel, ToyModel] satisfies ModelCtor[]
-const pool = {max: POOL_SIZE, min: 0} satisfies PoolOptions
-const plugins = [new CamelCasePlugin({maintainNestedObjectKeys: true})] satisfies KyselyPlugin[]
+const BASE_SEQUELIZE_CONFIG = {
+  logging: false,
+  models: [PersonModel, PetModel, ToyModel],
+  pool: {max: 20, min: 0},
+} satisfies SequelizeOptions
 
 export const CONFIGS: Record<
   SupportedDialect,
@@ -82,9 +115,33 @@ export const CONFIGS: Record<
     sequelizeConfig: SequelizeOptions
   }
 > = {
-  mysql: {
-    kyselySubDialect: mysqlSubDialect,
+  mssql: {
+    kyselySubDialect: {
+      // @ts-ignore
+      createAdapter: () => new MssqlAdapter(),
+      // @ts-ignore
+      createIntrospector: (db) => new MssqlIntrospector(db),
+      // @ts-ignore
+      createQueryCompiler: () => new MssqlQueryCompiler(),
+    },
     sequelizeConfig: {
+      ...BASE_SEQUELIZE_CONFIG,
+      database: 'kysely_test',
+      dialect: 'mssql',
+      host: 'localhost',
+      password: 'KyselyTest0',
+      port: 21433,
+      username: 'sa',
+    },
+  },
+  mysql: {
+    kyselySubDialect: {
+      createAdapter: () => new MysqlAdapter(),
+      createIntrospector: (db) => new MysqlIntrospector(db),
+      createQueryCompiler: () => new MysqlQueryCompiler(),
+    },
+    sequelizeConfig: {
+      ...BASE_SEQUELIZE_CONFIG,
       database: 'kysely_test',
       dialect: 'mysql',
       dialectOptions: {
@@ -93,36 +150,38 @@ export const CONFIGS: Record<
         bigNumberStrings: true,
       },
       host: 'localhost',
-      logging: false,
-      models,
       password: 'kysely',
-      pool,
       port: 3308,
       username: 'kysely',
     },
   },
   postgres: {
-    kyselySubDialect: postgresSubDialect,
+    kyselySubDialect: {
+      createAdapter: () => new PostgresAdapter(),
+      createIntrospector: (db) => new PostgresIntrospector(db),
+      createQueryCompiler: () => new PostgresQueryCompiler(),
+    },
     sequelizeConfig: {
+      ...BASE_SEQUELIZE_CONFIG,
       database: 'kysely_test',
       dialect: 'postgres',
       host: 'localhost',
-      logging: false,
-      models,
-      pool,
       port: 5434,
       username: 'kysely',
     },
   },
-  //   sqlite: {
-  //     kyselySubDialect: sqliteSubDialect,
-  //     sequelizeConfig: {
-  //       dialect: 'sqlite',
-  //       models,
-  //       pool,
-  //       storage: ':memory:',
-  //     },
-  //   },
+  sqlite: {
+    kyselySubDialect: {
+      createAdapter: () => new SqliteAdapter(),
+      createIntrospector: (db) => new SqliteIntrospector(db),
+      createQueryCompiler: () => new SqliteQueryCompiler(),
+    },
+    sequelizeConfig: {
+      ...BASE_SEQUELIZE_CONFIG,
+      dialect: 'sqlite',
+      storage: ':memory:',
+    },
+  },
 }
 
 export async function initTest(ctx: Mocha.Context, dialect: SupportedDialect): Promise<TestContext> {
@@ -145,7 +204,9 @@ export async function initTest(ctx: Mocha.Context, dialect: SupportedDialect): P
 
   const kysely = new Kysely<Database>({
     dialect: new KyselySequelizeDialect({...config, sequelize}),
-    plugins,
+    plugins: [dialect === 'mssql' ? new UnwrapMssqlForJSONResultsPlugin() : null, ...PLUGINS].filter(
+      Boolean,
+    ) as KyselyPlugin[],
   })
 
   return {kysely, sequelize}
@@ -157,15 +218,47 @@ export async function seedDatabase(_ctx: TestContext): Promise<void> {
       {
         as: 'pets',
         model: PetModel,
-        include: [
-          {
-            as: 'toys',
-            model: ToyModel,
-          },
-        ],
+        include: [{as: 'toys', model: ToyModel}],
       },
     ],
   })
+}
+
+export async function truncateDatabase(ctx: TestContext): Promise<void> {
+  const {sequelize} = ctx
+
+  const dialect = sequelize.getDialect() as SupportedDialect
+  const tables = [PersonModel.tableName, PetModel.tableName, ToyModel.tableName]
+
+  await sequelize.transaction(async (transaction) => {
+    if (dialect === 'mssql') {
+      await sequelize.query('EXEC sp_MSforeachtable "ALTER TABLE ? NOCHECK CONSTRAINT all"', {transaction})
+    } else if (dialect === 'mysql') {
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 0', {transaction})
+    }
+
+    if (dialect === 'mssql') {
+      await sequelize.query('EXEC sp_MSforeachtable "DELETE FROM ?"', {transaction})
+    } else {
+      await sequelize.truncate({cascade: true, restartIdentity: true, transaction})
+    }
+
+    if (dialect === 'mssql') {
+      await sequelize.query('EXEC sp_MSforeachtable "ALTER TABLE ? CHECK CONSTRAINT all"', {transaction})
+      await sequelize.query('EXEC sp_MSforeachtable "DBCC CHECKIDENT (\'?\', RESEED, 0)"', {transaction})
+    } else if (dialect === 'mysql') {
+      await sequelize.query('SET FOREIGN_KEY_CHECKS = 1', {transaction})
+      await Promise.all(
+        tables.map((table) => sequelize.query(`ALTER TABLE ${table} AUTO_INCREMENT = 1`, {transaction})),
+      )
+    } else if (dialect === 'sqlite') {
+      await sequelize.query('UPDATE SQLITE_SEQUENCE SET SEQ = 0', {transaction})
+    }
+  })
+}
+
+export async function dropDatabase(_ctx: TestContext): Promise<void> {
+  await _ctx.sequelize.drop()
 }
 
 export const DEFAULT_DATA_SET: PersonInsertParams[] = [
