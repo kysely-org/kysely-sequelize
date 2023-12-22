@@ -1,7 +1,7 @@
-import {type CompiledQuery, type DatabaseConnection, type QueryResult, type TransactionSettings} from 'kysely'
-import {QueryOptions, type Sequelize, type Transaction, type TransactionOptions} from 'sequelize'
+import type {CompiledQuery, DatabaseConnection, QueryResult, TransactionSettings} from 'kysely'
+import type {QueryOptions, Sequelize, Transaction, TransactionOptions} from 'sequelize'
 import {ISOLATION_LEVELS} from './isolation-levels.js'
-import {SupportedDialect} from './supported-dialects.js'
+import type {SupportedDialect} from './supported-dialects.js'
 import {isNumber, isObject, isString} from './type-utils.js'
 
 export class KyselySequelizeConnection implements DatabaseConnection {

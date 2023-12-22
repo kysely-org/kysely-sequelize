@@ -1,6 +1,6 @@
 import type {DatabaseConnection, Driver, TransactionSettings} from 'kysely'
-import {Sequelize} from 'sequelize'
-import {KyselySequelizeDialectConfig} from './config.js'
+import type {Sequelize} from 'sequelize'
+import type {KyselySequelizeDialectConfig} from './config.js'
 import {KyselySequelizeConnection} from './connection.js'
 
 export class KyselySequelizeDriver implements Driver {

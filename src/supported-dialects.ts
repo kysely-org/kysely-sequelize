@@ -1,12 +1,6 @@
 import type {Dialect} from 'sequelize'
 
-export const SUPPORTED_DIALECTS = [
-  // 'mariadb', figure out how to test this
-  // 'mssql', waiting for kysely to release a new version
-  'mysql',
-  'postgres',
-  // 'sqlite', figure out how to test this
-] as const satisfies Dialect[]
+export const SUPPORTED_DIALECTS = ['mssql', 'mysql', 'postgres', 'sqlite'] as const satisfies Dialect[]
 
 export type SupportedDialect = (typeof SUPPORTED_DIALECTS)[number]
 

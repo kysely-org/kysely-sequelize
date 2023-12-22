@@ -1,4 +1,4 @@
-import {IsolationLevel} from 'kysely'
+import type {IsolationLevel} from 'kysely'
 import {Transaction} from 'sequelize'
 
 export const ISOLATION_LEVELS = {
