@@ -1,4 +1,4 @@
-import {Optional} from 'sequelize'
+import type {Optional} from 'sequelize'
 import {BelongsTo, Column, DataType, ForeignKey, HasMany, Model, Table} from 'sequelize-typescript'
 import {PersonModel} from './person.model.js'
 import {ToyModel} from './toy.model.js'

@@ -98,10 +98,7 @@ class UnwrapMssqlForJSONResultsPlugin implements KyselyPlugin {
   }
 }
 
-export const PLUGINS: KyselyPlugin[] = [
-  new CamelCasePlugin({maintainNestedObjectKeys: true}),
-  new ParseJSONResultsPlugin(),
-]
+export const PLUGINS: KyselyPlugin[] = [new CamelCasePlugin()]
 
 const BASE_SEQUELIZE_CONFIG = {
   logging: false,
@@ -204,9 +201,11 @@ export async function initTest(ctx: Mocha.Context, dialect: SupportedDialect): P
 
   const kysely = new Kysely<Database>({
     dialect: new KyselySequelizeDialect({...config, sequelize}),
-    plugins: [dialect === 'mssql' ? new UnwrapMssqlForJSONResultsPlugin() : null, ...PLUGINS].filter(
-      Boolean,
-    ) as KyselyPlugin[],
+    plugins: [
+      dialect === 'mssql' ? new UnwrapMssqlForJSONResultsPlugin() : null,
+      dialect === 'sqlite' ? new ParseJSONResultsPlugin() : null,
+      ...PLUGINS,
+    ].filter(Boolean) as KyselyPlugin[],
   })
 
   return {kysely, sequelize}

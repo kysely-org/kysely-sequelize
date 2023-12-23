@@ -1,4 +1,4 @@
-import {Optional} from 'sequelize'
+import type {Optional} from 'sequelize'
 import {Column, DataType, HasMany, Model, Table} from 'sequelize-typescript'
 import {PetModel} from './pet.model'
 
