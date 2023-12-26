@@ -12,8 +12,36 @@ A match made in heaven, on paper. Let’s see how it works in practice, with `ky
 
 ## Installation
 
+Main dependencies:
+
 ```sh
-npm install kysely kysely-sequelize sequelize sequelize-typescript
+npm i kysely kysely-sequelize sequelize sequelize-typescript
+```
+
+PostgreSQL:
+
+```sh
+npm i pg 
+```
+
+MySQL:
+
+```sh
+npm i mysql2 
+```
+
+MS SQL Server (MSSQL):
+
+```sh
+npm i tedious
+```
+
+SQLite:
+
+ATTTENTION: While Kysely supports `better-sqlite3` with its core SQLite dialect, Sequelize uses `sqlite3` under the hood. This library doesn't use Kysely's own drivers.
+
+```sh
+npm i sqlite3
 ```
 
 ## Usage
@@ -146,7 +174,7 @@ export class ToyModel extends Model<ToyAttributes, ToyCreationAttributes> {
 
 ### Kysely Database Interface
 
-Use `kyselifyCreationAttributes` to transform your Sequelize models into Kysely-compatible types.
+Use `KyselifyCreationAttributes` to transform your Sequelize models into Kysely-compatible types.
 
 `src/types/database.ts`:
 
@@ -159,18 +187,6 @@ export type PersonTable = KyselifyCreationAttributes<PersonCreationAttributes>
 //              ^? { id: Generated<number>, firstName: string | null, ... }
 export type PetTable = KyselifyCreationAttributes<PetCreationAttributes>
 export type ToyTable = KyselifyCreationAttributes<ToyCreationAttributes>
-
-export type Person = Selectable<PersonTable>
-export type PersonInsertObject = Insertable<PersonTable>
-export type PersonUpdateObject = Updateable<PersonTable>
-
-export type Pet = Selectable<PetTable>
-export type PetInsertObject = Insertable<PetTable>
-export type PetUpdateObject = Updateable<PetTable>
-
-export type Toy = Selectable<ToyTable>
-export type ToyInsertObject = Insertable<ToyTable>
-export type ToyUpdateObject = Updateable<ToyTable>
 
 export interface Database {
   person: PersonTable
@@ -230,7 +246,13 @@ Create a Kysely instance.
 `src/kysely.ts`:
 
 ```ts
-import {CamelCasePlugin, ParseJSONResultsPlugin, Kysely} from 'kysely'
+import {
+  CamelCasePlugin,
+  Kysely,
+  PostgresAdapter,
+  PostgresIntrospector,
+  PostgresQueryCompiler
+} from 'kysely'
 import {KyselySequelizeDialect} from 'kysely-sequelize'
 import type {Database} from './types/database'
 
