@@ -2,6 +2,9 @@ import * as chai from 'chai'
 import {
   CamelCasePlugin,
   Kysely,
+  MssqlAdapter,
+  MssqlIntrospector,
+  MssqlQueryCompiler,
   MysqlAdapter,
   MysqlIntrospector,
   MysqlQueryCompiler,
@@ -9,21 +12,13 @@ import {
   PostgresAdapter,
   PostgresIntrospector,
   PostgresQueryCompiler,
-  RawNode,
-  SelectQueryNode,
   SqliteAdapter,
   SqliteIntrospector,
   SqliteQueryCompiler,
   type Compilable,
   type KyselyPlugin,
-  type PluginTransformQueryArgs,
-  type PluginTransformResultArgs,
-  type QueryResult,
-  type RootOperationNode,
-  type UnknownRow,
 } from 'kysely'
 import {Sequelize, type SequelizeOptions} from 'sequelize-typescript'
-import {MssqlAdapter, MssqlIntrospector, MssqlQueryCompiler} from '../../node_modules/kysely-master/src'
 import {
   KyselySequelizeDialect,
   type KyselifyCreationAttributes,
@@ -62,42 +57,6 @@ export type PerDialect<T> = Record<SupportedDialect, T>
 
 const TEST_INIT_TIMEOUT = 5 * 60 * 1_000
 
-class UnwrapMssqlForJSONResultsPlugin implements KyselyPlugin {
-  #isForJSONQueryMap = new WeakMap<PluginTransformQueryArgs['queryId'], boolean>()
-
-  transformQuery(args: PluginTransformQueryArgs): RootOperationNode {
-    const {node} = args
-
-    this.#isForJSONQueryMap.set(
-      args.queryId,
-      SelectQueryNode.is(node) &&
-        Boolean(
-          node.endModifiers?.some(
-            ({rawModifier}) =>
-              rawModifier &&
-              RawNode.is(rawModifier) &&
-              rawModifier.sqlFragments.some((fragment) => /for json (path|auto)/i.test(fragment)),
-          ),
-        ),
-    )
-
-    return args.node
-  }
-
-  async transformResult(args: PluginTransformResultArgs): Promise<QueryResult<UnknownRow>> {
-    const {result} = args
-
-    if (!this.#isForJSONQueryMap.has(args.queryId)) {
-      return args.result
-    }
-
-    return {
-      ...result,
-      rows: result.rows.flatMap((row) => JSON.parse(Object.values(row)[0] as string)) as UnknownRow[],
-    }
-  }
-}
-
 export const PLUGINS: KyselyPlugin[] = [new CamelCasePlugin()]
 
 const BASE_SEQUELIZE_CONFIG = {
@@ -114,11 +73,8 @@ export const CONFIGS: Record<
 > = {
   mssql: {
     kyselySubDialect: {
-      // @ts-ignore
       createAdapter: () => new MssqlAdapter(),
-      // @ts-ignore
       createIntrospector: (db) => new MssqlIntrospector(db),
-      // @ts-ignore
       createQueryCompiler: () => new MssqlQueryCompiler(),
     },
     sequelizeConfig: {
@@ -201,11 +157,9 @@ export async function initTest(ctx: Mocha.Context, dialect: SupportedDialect): P
 
   const kysely = new Kysely<Database>({
     dialect: new KyselySequelizeDialect({...config, sequelize}),
-    plugins: [
-      dialect === 'mssql' ? new UnwrapMssqlForJSONResultsPlugin() : null,
-      dialect === 'sqlite' ? new ParseJSONResultsPlugin() : null,
-      ...PLUGINS,
-    ].filter(Boolean) as KyselyPlugin[],
+    plugins: [dialect === 'mssql' || dialect === 'sqlite' ? new ParseJSONResultsPlugin() : null, ...PLUGINS].filter(
+      Boolean,
+    ) as KyselyPlugin[],
   })
 
   return {kysely, sequelize}

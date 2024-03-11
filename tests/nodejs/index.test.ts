@@ -1,5 +1,6 @@
 import {expect} from 'chai'
-import {DeleteResult, InferResult, InsertResult, Selectable, UpdateResult, sql} from 'kysely'
+import {DeleteResult, InsertResult, UpdateResult} from 'kysely'
+import {jsonArrayFrom as jsonArrayFromMSSQL} from 'kysely/helpers/mssql'
 import {jsonArrayFrom as jsonArrayFromMySQL} from 'kysely/helpers/mysql'
 import {jsonArrayFrom as jsonArrayFromPostgres} from 'kysely/helpers/postgres'
 import {jsonArrayFrom as jsonArrayFromSQLite} from 'kysely/helpers/sqlite'
@@ -8,7 +9,6 @@ import {PersonModel} from './models/person.model.js'
 import {PetModel} from './models/pet.model.js'
 import {
   DEFAULT_DATA_SET,
-  Pet,
   dropDatabase,
   initTest,
   seedDatabase,
@@ -21,6 +21,7 @@ for (const dialect of SUPPORTED_DIALECTS) {
     let ctx: TestContext
 
     const jsonArrayFrom = {
+      mssql: jsonArrayFromMSSQL,
       mysql: jsonArrayFromMySQL,
       postgres: jsonArrayFromPostgres,
       sqlite: jsonArrayFromSQLite,
@@ -51,24 +52,18 @@ for (const dialect of SUPPORTED_DIALECTS) {
 
       expect(ormPeople).to.deep.equal(DEFAULT_DATA_SET)
 
-      const baseQuery = ctx.kysely
+      const query = ctx.kysely
         .selectFrom('person')
-        .select(['firstName', 'gender', 'lastName', 'maritalStatus', 'middleName'])
-
-      const query = {
-        [dialect]: jsonArrayFrom
-          ? baseQuery.select((eb) =>
-              jsonArrayFrom(
-                eb.selectFrom('pet').whereRef('pet.ownerId', '=', 'person.id').select(['pet.name', 'pet.species']),
-              ).as('pets'),
-            )
-          : baseQuery,
-        mssql: baseQuery
-          .leftJoin('pet as pets', 'pets.ownerId', 'person.id')
-          .select(['pets.name', 'pets.species'])
-          .modifyEnd(sql`for json auto, include_null_values`)
-          .$castTo<InferResult<typeof baseQuery> & {pets: Selectable<Pick<Pet, 'name' | 'species'>>[]}>(),
-      }[dialect]
+        .select((eb) => [
+          'firstName',
+          'gender',
+          'lastName',
+          'maritalStatus',
+          'middleName',
+          jsonArrayFrom(
+            eb.selectFrom('pet').whereRef('pet.ownerId', '=', 'person.id').select(['pet.name', 'pet.species']),
+          ).as('pets'),
+        ])
 
       const queryBuilderPeople = await query.execute()
 
