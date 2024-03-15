@@ -6,4 +6,4 @@ export const ISOLATION_LEVELS = {
   'read uncommitted': Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED,
   'repeatable read': Transaction.ISOLATION_LEVELS.REPEATABLE_READ,
   serializable: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
-} as const satisfies Record<IsolationLevel, Transaction.ISOLATION_LEVELS>
+} as const satisfies Record<Exclude<IsolationLevel, 'snapshot'>, Transaction.ISOLATION_LEVELS>

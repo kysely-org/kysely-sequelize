@@ -68,9 +68,15 @@ export class KyselySequelizeConnection implements DatabaseConnection {
   }
 
   #translateTransactionSettings(settings: TransactionSettings): TransactionOptions {
+    const {isolationLevel} = settings
+
+    if (isolationLevel === 'snapshot') {
+      throw new Error('Snapshot isolation level is not supported by Sequelize!')
+    }
+
     return {
       autocommit: false,
-      ...(settings.isolationLevel ? {isolationLevel: ISOLATION_LEVELS[settings.isolationLevel]} : {}),
+      ...(isolationLevel ? {isolationLevel: ISOLATION_LEVELS[isolationLevel]} : {}),
     }
   }
 
