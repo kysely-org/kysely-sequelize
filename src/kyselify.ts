@@ -66,7 +66,52 @@ export type GeneratedAlways<T> = T & {
 }
 
 /**
- * sequelize >= 6.14.0
+ * Translates a sequelize model (>= 6.14.0) to a Kysely table schema type.
+ *
+ * @example
+ *
+ * \@Table({modelName: 'KitchenSink', tableName: 'kitchen_sink', underscored: true})
+ * export class KitchenSinkModel extends Model<
+ *   InferAttributes<KitchenSinkModel>,
+ *   InferCreationAttributes<KitchenSinkModel>
+ * > {
+ *   declare id: GeneratedAlways<CreationOptional<number>>
+ *   declare name: string
+ *   declare preferredName: string | null
+ *   declare createdAt: CreationOptional<Date>
+ *   declare updatedAt: CreationOptional<Date>
+ *   declare getProjects: HasManyGetAssociationsMixin<any>
+ *   declare addProject: HasManyAddAssociationMixin<any, number>
+ *   declare addProjects: HasManyAddAssociationsMixin<any, number>
+ *   declare setProjects: HasManySetAssociationsMixin<any, number>
+ *   declare removeProject: HasManyRemoveAssociationMixin<any, number>
+ *   declare removeProjects: HasManyRemoveAssociationsMixin<any, number>
+ *   declare hasProject: HasManyHasAssociationMixin<any, number>
+ *   declare hasProjects: HasManyHasAssociationsMixin<any, number>
+ *   declare countProjects: HasManyCountAssociationsMixin
+ *   declare createProject: HasManyCreateAssociationMixin<any, 'ownerId'>
+ *   declare projects?: NonAttribute<any[]>
+ *   get fullName(): NonAttribute<string> {
+ *     return this.name
+ *   }
+ *   declare static associations: {
+ *     projects: Association<KitchenSinkModel, any>
+ *   }
+ *   declare kitchenId: ForeignKey<number | null>
+ * }
+ *
+ * type KitchenSink = KyselifyModel<KitchenSinkModel>
+ *
+ * interface Database {
+ *   kitchenSink: KitchenSink
+ * }
+ *
+ * export const db = new Kysely<Database>({
+ *   // ...
+ * })
+ *
+ * @template M - Model
+ * @template O - Overrides
  */
 export type KyselifyModel<M extends Model<any, any>, O = {}> = {
   [K in keyof InferAttributes<M> as NonAttribute<any> extends M[K] ? never : K]-?: K extends keyof O
