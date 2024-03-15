@@ -33,6 +33,8 @@ async function testInsert(db: Kysely<Database>) {
 
   // @ts-expect-error - missing name
   db.insertInto('kitchenSink').values({})
+  // @ts-expect-error - wrong data type for name
+  db.insertInto('kitchenSink').values({name: 2})
   // @ts-expect-error - id is generated always!
   db.insertInto('kitchenSink').values({id: 2, name: 'John Doe'})
   // @ts-expect-error - wrong data type for preferredName
@@ -43,4 +45,30 @@ async function testInsert(db: Kysely<Database>) {
   db.insertInto('kitchenSink').values({name: 'John Doe', kitchenId: '123'})
   // @ts-expect-error - fullName is a non-attribute
   db.insertInto('kitchenSink').values({name: 'John Doe', fullName: 'yossi'})
+}
+
+async function testUpdate(db: Kysely<Database>) {
+  db.updateTable('kitchenSink').set({})
+  db.updateTable('kitchenSink').set({name: 'John Doe'})
+  db.updateTable('kitchenSink').set({preferredName: 'Johnny'})
+  db.updateTable('kitchenSink').set({preferredName: null})
+  db.updateTable('kitchenSink').set({createdAt: new Date()})
+  db.updateTable('kitchenSink').set({updatedAt: new Date()})
+  db.updateTable('kitchenSink').set({kitchenId: 123})
+  db.updateTable('kitchenSink').set({kitchenId: null})
+
+  // @ts-expect-error - id is generated always!
+  db.updateTable('kitchenSink').set({id: 2})
+  // @ts-expect-error - wrong data type for name
+  db.updateTable('kitchenSink').set({name: 2})
+  // @ts-expect-error - wrong data type for preferredName
+  db.updateTable('kitchenSink').set({preferredName: 2})
+  // @ts-expect-error - wrong data type for createdAt
+  db.updateTable('kitchenSink').set({createdAt: null})
+  // @ts-expect-error - wrong data type for updatedAt
+  db.updateTable('kitchenSink').set({updatedAt: null})
+  // @ts-expect-error - wrong data type for kitchenId
+  db.updateTable('kitchenSink').set({kitchenId: '123'})
+  // @ts-expect-error - fullName is a non-attribute
+  db.updateTable('kitchenSink').set({fullName: 'yossi'})
 }
