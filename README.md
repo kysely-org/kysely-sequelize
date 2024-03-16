@@ -2,7 +2,7 @@
 
 Sequelize is a modern TypeScript and Node.js ORM for Oracle, Postgres, MySQL, MariaDB, SQLite and SQL Server, and more. Featuring solid transaction support, relations, eager and lazy loading, read replication and more.
 
-As of Dec 10, 2023, Sequelize is gearing up for v7 (currently in alpha) and [has 1,554,999 weekly downloads on npm](https://npmtrends.com/prisma-vs-sequelize-vs-typeorm) (2nd most popular ORM behind Prisma). It is a very popular ORM for Node.js and TypeScript (thanks to `sequelize-typescript`).
+As of Mar 16, 2024, Sequelize is gearing up for v7 (currently in alpha) and [has 2,107,202 weekly downloads on npm](https://npmtrends.com/prisma-vs-sequelize-vs-typeorm) (most popular ORM). It is a very popular ORM for Node.js and TypeScript (thanks to `sequelize-typescript`).
 
 Just like most ORMs for Node.js, Sequelize has poor TypeScript support when it comes to writing queries outside of the ORM's CRUD methods - something that happens more often than you might imagine - usually due to performance optimizations OR as a general escape hatch. This is where Kysely comes in.
 
@@ -21,13 +21,13 @@ npm i kysely kysely-sequelize sequelize sequelize-typescript
 PostgreSQL:
 
 ```sh
-npm i pg 
+npm i pg
 ```
 
 MySQL:
 
 ```sh
-npm i mysql2 
+npm i mysql2
 ```
 
 MS SQL Server (MSSQL):
@@ -46,9 +46,137 @@ npm i sqlite3
 
 ## Usage
 
-### Models
+### Models & Types
 
-Define your models using `sequelize-typescript` and manual attribute typing. Sadly, using the `InferAttributes<M>` and `InferCreationAttributes<M>` way doesn't work with `kysely-sequelize`, as type translation would depend on an unexported Sequelize unique symbol.
+As of today, there are two ways to define Sequelize models in TypeScript. This
+library supports both.
+
+#### Sequelize >= v6.14.0
+
+Define your model with `InferAttributes`, `InferCreationAttributes`, `CreationOptional`, `NonAttribute`, `ForeignKey`, etc.
+
+`src/models/person.model.ts`:
+
+```ts
+import type {GeneratedAlways} from 'kysely-sequelize'
+import type {CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute} from 'sequelize'
+import {Column, DataType, HasMany, Model, Table} from 'sequelize-typescript'
+import {PetModel} from './pet.model'
+
+@Table({modelName: 'Person', tableName: 'person', timestamps: false, underscored: true})
+export class PersonModel extends Model<InferAttributes<PersonModel>, InferCreationAttributes<PersonModel>> {
+  declare id: GeneratedAlways<CreationOptional<number>>
+
+  @Column(DataType.STRING(255))
+  firstName: string | null
+
+  @Column(DataType.STRING(255))
+  middleName: string | null
+
+  @Column(DataType.STRING(255))
+  lastName: string | null
+
+  @Column({allowNull: false, type: DataType.STRING(50)})
+  gender: 'male' | 'female' | 'other'
+
+  @Column(DataType.STRING(50))
+  maritalStatus: 'single' | 'married' | 'divorced' | 'widowed' | null
+
+  @HasMany(() => PetModel)
+  pets: NonAttribute<PetModel[]>
+}
+```
+
+`src/models/pet.model.ts`:
+
+```ts
+import type {CreationOptional, ForeignKey, InferAttributes, InferCreationAttributes, NonAttribute} from 'sequelize'
+import {BelongsTo, Column, DataType, HasMany, Model, Table} from 'sequelize-typescript'
+import {PersonModel} from './person.model.js'
+import {ToyModel} from './toy.model.js'
+
+@Table({
+  modelName: 'Pet',
+  indexes: [{fields: ['owner_id'], name: 'pet_owner_id_index'}],
+  tableName: 'pet',
+  timestamps: false,
+  underscored: true,
+})
+export class PetModel extends Model<InferAttributes<PetModel>, InferCreationAttributes<PetModel>> {
+  declare id: GeneratedAlways<CreationOptional<number>>
+
+  @Column({allowNull: false, type: DataType.STRING(255)})
+  name: string
+
+  declare ownerId: ForeignKey<number>
+
+  @Column({allowNull: false, type: DataType.STRING(50)})
+  species: 'dog' | 'cat' | 'hamster'
+
+  @BelongsTo(() => PersonModel, 'ownerId')
+  owner: NonAttribute<PersonModel>
+
+  @HasMany(() => ToyModel)
+  toys: NonAttribute<ToyModel[]>
+}
+```
+
+`src/models/toy.model.ts`:
+
+```ts
+import type {CreationOptional, ForeignKey, InferAttributes, InferCreationAttributes, NonAttribute} from 'sequelize'
+import {BelongsTo, Column, DataType, Model, Table} from 'sequelize-typescript'
+import {PetModel} from './pet.model'
+
+export interface ToyAttributes {
+  id: number
+  name: string
+  price: number
+  petId: number
+}
+
+export type ToyCreationAttributes = Optional<ToyAttributes, 'id'>
+
+@Table({modelName: 'Toy', tableName: 'toy', timestamps: false, underscored: true})
+export class ToyModel extends Model<InferAttributes<ToyModel>, InferCreationAttributes<ToyModel>> {
+  declare id: GeneratedAlways<CreationOptional<number>>
+
+  @Column({allowNull: false, type: DataType.STRING(255)})
+  name: string
+
+  declare petId: ForeignKey<number>
+
+  @Column({allowNull: false, type: DataType.DOUBLE})
+  price: number
+
+  @BelongsTo(() => PetModel, 'petId')
+  pet: NonAttribute<PetModel>
+}
+```
+
+Use `KyselifyModel` to transform your Sequelize models into Kysely-compatible table schema.
+
+`src/types/database.ts`:
+
+```ts
+import type {KyselifyModel} from 'kysely-sequelize'
+import type {PersonModel, PetModel, ToyModel} from '../models'
+
+export type PersonTable = KyselifyModel<PersonModel>
+//              ^? { id: GeneratedAlways<number>, firstName: string | null, ... }
+export type PetTable = KyselifyModel<PetCreationAttributes>
+export type ToyTable = KyselifyModel<ToyCreationAttributes>
+
+export interface Database {
+  person: PersonTable
+  pet: PetTable
+  toy: ToyTable
+}
+```
+
+#### Sequelize < v6.14.0 (the old verbose way)
+
+Define your models using `sequelize-typescript` and manual attribute typing.
 
 `src/models/person.model.ts`:
 
@@ -172,19 +300,16 @@ export class ToyModel extends Model<ToyAttributes, ToyCreationAttributes> {
 }
 ```
 
-### Kysely Database Interface
-
-Use `KyselifyCreationAttributes` to transform your Sequelize models into Kysely-compatible types.
+Use `KyselifyCreationAttributes` to transform your Sequelize models' attributes into Kysely-compatible types.
 
 `src/types/database.ts`:
 
 ```ts
-import type {Insertable, Selectable, Updateable} from 'kysely'
 import type {KyselifyCreationAttributes} from 'kysely-sequelize'
 import type {PersonCreationAttributes, PetCreationAttributes, ToyCreationAttributes} from '../models'
 
 export type PersonTable = KyselifyCreationAttributes<PersonCreationAttributes>
-//              ^? { id: Generated<number>, firstName: string | null, ... }
+//              ^? { id: GeneratedAlways<number>, firstName: string | null, ... }
 export type PetTable = KyselifyCreationAttributes<PetCreationAttributes>
 export type ToyTable = KyselifyCreationAttributes<ToyCreationAttributes>
 
@@ -246,13 +371,7 @@ Create a Kysely instance.
 `src/kysely.ts`:
 
 ```ts
-import {
-  CamelCasePlugin,
-  Kysely,
-  PostgresAdapter,
-  PostgresIntrospector,
-  PostgresQueryCompiler
-} from 'kysely'
+import {CamelCasePlugin, Kysely, PostgresAdapter, PostgresIntrospector, PostgresQueryCompiler} from 'kysely'
 import {KyselySequelizeDialect} from 'kysely-sequelize'
 import type {Database} from './types/database'
 

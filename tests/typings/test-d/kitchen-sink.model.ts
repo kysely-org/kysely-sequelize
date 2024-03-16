@@ -16,7 +16,7 @@ import type {
   InferCreationAttributes,
   NonAttribute,
 } from 'sequelize'
-import {Column, DataType, HasMany, HasOne, Model, Table} from 'sequelize-typescript'
+import {BelongsTo, Column, DataType, HasMany, HasOne, Model, Table} from 'sequelize-typescript'
 import type {GeneratedAlways} from '../../../src/index.js'
 
 @Table({modelName: 'KitchenSink', tableName: 'kitchen_sink', underscored: true})
@@ -49,7 +49,7 @@ export class KitchenSinkModel extends Model<
   @HasMany(() => ProjectModel, 'kitchenSinkId')
   projects: NonAttribute<ProjectModel[]>
 
-  @HasOne(() => KitchenModel, 'kitchenId')
+  @BelongsTo(() => KitchenModel, 'kitchenId')
   kitchen: NonAttribute<KitchenModel>
 
   declare kitchenId: ForeignKey<number | null>
