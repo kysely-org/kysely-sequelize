@@ -76,7 +76,7 @@
     "prettier-plugin-pkg": "^0.17.1",
     "reflect-metadata": "^0.2.1",
     "sequelize-typescript": "^2.1.6",
-    "sqlite3": "^5.1.6",
+    "sqlite3": "^5.1.7",
     "tedious": "^18.1.0",
     "tsd": "^0.30.7",
     "tsup": "^8.0.2",
