@@ -387,7 +387,6 @@ async function getKysely(): Promise<Kysely<Database>> {
   kysely = new Kysely<Database>({
     dialect: new KyselySequelizeDialect({
       // kysely-sequelize also supports MySQL, SQLite, and MS SQL Server.
-      // Since Kysely's MS SQL Server dialect is unreleased, you'll have to install Kysely directly from Github for now.
       kyselyDialect: {
         createAdapter: () => PostgresAdapter(),
         createIntrospector: (db) => new PostgresIntrospector(db),
