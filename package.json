@@ -77,7 +77,7 @@
     "reflect-metadata": "^0.2.1",
     "sequelize-typescript": "^2.1.6",
     "sqlite3": "^5.1.6",
-    "tedious": "^16.6.1",
+    "tedious": "^18.1.0",
     "tsd": "^0.30.7",
     "tsup": "^8.0.2",
     "type-fest": "^4.12.0",
