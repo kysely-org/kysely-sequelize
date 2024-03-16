@@ -1,6 +1,6 @@
 module.exports = {
-    type: "bundle",
-    esbuild: {
-        tsconfig: './tsconfig.json'
-    }
+  type: 'bundle',
+  esbuild: {
+    tsconfig: './tsconfig.json',
+  },
 }

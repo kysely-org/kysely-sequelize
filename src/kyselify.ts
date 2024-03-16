@@ -53,8 +53,8 @@ export type KyselifyCreationAttributes<CA, O = {}> = {
   [K in keyof CA]-?: K extends keyof O
     ? O[K]
     : undefined extends CA[K]
-    ? KyselyGenerated<Exclude<CA[K], undefined>>
-    : CA[K]
+      ? KyselyGenerated<Exclude<CA[K], undefined>>
+      : CA[K]
 }
 
 /**
@@ -139,22 +139,22 @@ export type KyselifyModel<M extends Model<any, any>, O = {}> = {
   [K in keyof InferAttributes<M> as NonAttribute<any> extends M[K] ? never : K]-?: K extends keyof O
     ? O[K]
     : '__kysely__generated__always__' extends keyof M[K]
-    ? M[K] extends GeneratedAlways<infer T>
-      ? keyof CreationOptional<{}> extends keyof T
-        ? T extends CreationOptional<infer U>
-          ? KyselyGeneratedAlways<U>
+      ? M[K] extends GeneratedAlways<infer T>
+        ? keyof CreationOptional<{}> extends keyof T
+          ? T extends CreationOptional<infer U>
+            ? KyselyGeneratedAlways<U>
+            : never
           : never
         : never
-      : never
-    : keyof CreationOptional<{}> extends keyof M[K]
-    ? M[K] extends CreationOptional<infer T>
-      ? KyselyGenerated<T>
-      : never
-    : M[K] extends ForeignKey<infer T>
-    ? undefined extends T
-      ? Exclude<T, undefined> | null
-      : T
-    : undefined extends M[K]
-    ? Exclude<M[K], undefined> | null
-    : M[K]
+      : keyof CreationOptional<{}> extends keyof M[K]
+        ? M[K] extends CreationOptional<infer T>
+          ? KyselyGenerated<T>
+          : never
+        : M[K] extends ForeignKey<infer T>
+          ? undefined extends T
+            ? Exclude<T, undefined> | null
+            : T
+          : undefined extends M[K]
+            ? Exclude<M[K], undefined> | null
+            : M[K]
 }

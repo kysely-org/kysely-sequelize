@@ -104,8 +104,8 @@ export class KyselySequelizeConnection implements DatabaseConnection {
     const paramsKey = ['mysql', 'sqlite'].includes(dialect)
       ? 'replacements'
       : ['postgres'].includes(dialect)
-      ? 'bind'
-      : undefined
+        ? 'bind'
+        : undefined
 
     return {
       ...(paramsKey ? {[paramsKey]: compiledQuery.parameters} : {}),
@@ -125,8 +125,8 @@ export class KyselySequelizeConnection implements DatabaseConnection {
         numAffectedRows: isNumber(metadata)
           ? BigInt(metadata)
           : isObject(metadata) && 'rowCount' in metadata && isNumber(metadata.rowCount)
-          ? BigInt(metadata.rowCount)
-          : undefined,
+            ? BigInt(metadata.rowCount)
+            : undefined,
       }
     }
 
@@ -136,8 +136,8 @@ export class KyselySequelizeConnection implements DatabaseConnection {
         numAffectedRows: isNumber(metadata)
           ? BigInt(metadata)
           : isObject(metadata) && 'affectedRows' in metadata && isNumber(metadata.affectedRows)
-          ? BigInt(metadata.affectedRows)
-          : undefined,
+            ? BigInt(metadata.affectedRows)
+            : undefined,
         numChangedRows:
           isObject(metadata) && 'changedRows' in metadata && isNumber(metadata.changedRows)
             ? BigInt(metadata.changedRows)
