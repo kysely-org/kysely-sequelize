@@ -17,14 +17,14 @@ devDependencies:
     specifier: ^4.3.12
     version: 4.3.12
   '@types/mocha':
-    specifier: ^10.0.1
+    specifier: ^10.0.6
     version: 10.0.6
   '@types/node':
-    specifier: ^18.15.11
-    version: 18.19.3
+    specifier: ^20.11.28
+    version: 20.11.28
   '@types/pg':
-    specifier: ^8.10.9
-    version: 8.10.9
+    specifier: ^8.11.2
+    version: 8.11.2
   '@typescript-eslint/eslint-plugin':
     specifier: ^7.2.0
     version: 7.2.0(@typescript-eslint/parser@7.2.0)(eslint@8.57.0)(typescript@5.4.2)
@@ -81,7 +81,7 @@ devDependencies:
     version: 0.2.1
   sequelize-typescript:
     specifier: ^2.1.6
-    version: 2.1.6(@types/node@18.19.3)(@types/validator@13.11.7)(reflect-metadata@0.2.1)(sequelize@6.35.2)
+    version: 2.1.6(@types/node@20.11.28)(@types/validator@13.11.7)(reflect-metadata@0.2.1)(sequelize@6.35.2)
   sqlite3:
     specifier: ^5.1.7
     version: 5.1.7
@@ -1005,12 +1005,18 @@ packages:
     dependencies:
       undici-types: 5.26.5
 
+  /@types/node@20.11.28:
+    resolution: {integrity: sha512-M/GPWVS2wLkSkNHVeLkrF2fD5Lx5UC4PxA0uZcKc6QqbIQUJyW1jVjueJYi1z8n0I5PxYrtpnPnWglE+y9A0KA==}
+    dependencies:
+      undici-types: 5.26.5
+    dev: true
+
   /@types/normalize-package-data@2.4.4:
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
     dev: true
 
-  /@types/pg@8.10.9:
-    resolution: {integrity: sha512-UksbANNE/f8w0wOMxVKKIrLCbEMV+oM1uKejmwXr39olg4xqcfBDbXxObJAt6XxHbDa4XTKOlUEcEltXDX+XLQ==}
+  /@types/pg@8.11.2:
+    resolution: {integrity: sha512-G2Mjygf2jFMU/9hCaTYxJrwdObdcnuQde1gndooZSOHsNSaCehAuwc7EIuSA34Do8Jx2yZ19KtvW8P0j4EuUXw==}
     dependencies:
       '@types/node': 18.19.3
       pg-protocol: 1.6.0
@@ -4061,7 +4067,7 @@ packages:
     resolution: {integrity: sha512-G9c0qlIWQSK29pR/5U2JF5dDQeqqHRragoyahj/Nx4KOOQ3CPPfzxnfqFPCSB7x5UgjOgnZ61nSxz+fjDpRlJg==}
     engines: {node: '>= 10.0.0'}
 
-  /sequelize-typescript@2.1.6(@types/node@18.19.3)(@types/validator@13.11.7)(reflect-metadata@0.2.1)(sequelize@6.35.2):
+  /sequelize-typescript@2.1.6(@types/node@20.11.28)(@types/validator@13.11.7)(reflect-metadata@0.2.1)(sequelize@6.35.2):
     resolution: {integrity: sha512-Vc2N++3en346RsbGjL3h7tgAl2Y7V+2liYTAOZ8XL0KTw3ahFHsyAUzOwct51n+g70I1TOUDgs06Oh6+XGcFkQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
@@ -4070,7 +4076,7 @@ packages:
       reflect-metadata: '*'
       sequelize: '>=6.20.1'
     dependencies:
-      '@types/node': 18.19.3
+      '@types/node': 20.11.28
       '@types/validator': 13.11.7
       glob: 7.2.0
       reflect-metadata: 0.2.1
