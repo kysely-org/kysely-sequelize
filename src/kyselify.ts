@@ -60,6 +60,14 @@ export type KyselifyCreationAttributes<CA, O = {}> = {
 /**
  * Similar to Kysely's `GeneratedAlways` type, but is compatible with sequelize's
  * branded types (e.g. `CreationOptional`).
+ *
+ * @example
+ *
+ * ```ts
+ * declare id: GeneratedAlways<CreationOptional<number>>
+ * ```
+ *
+ * @template T - a column defined as `CreationOptional`.
  */
 export type GeneratedAlways<T> = T & {
   readonly __kysely__generated__always__?: unique symbol
@@ -76,10 +84,16 @@ export type GeneratedAlways<T> = T & {
  *   InferCreationAttributes<KitchenSinkModel>
  * > {
  *   declare id: GeneratedAlways<CreationOptional<number>>
- *   declare name: string
- *   declare preferredName: string | null
+ *
+ *   \@Column({allowNull: false, type: DataType.STRING(255)})
+ *   name: string
+ *
+ *   \@Column(DataType.STRING(255))
+ *   preferredName: string | null
+ *
  *   declare createdAt: CreationOptional<Date>
  *   declare updatedAt: CreationOptional<Date>
+ *
  *   declare getProjects: HasManyGetAssociationsMixin<any>
  *   declare addProject: HasManyAddAssociationMixin<any, number>
  *   declare addProjects: HasManyAddAssociationsMixin<any, number>
@@ -90,14 +104,22 @@ export type GeneratedAlways<T> = T & {
  *   declare hasProjects: HasManyHasAssociationsMixin<any, number>
  *   declare countProjects: HasManyCountAssociationsMixin
  *   declare createProject: HasManyCreateAssociationMixin<any, 'ownerId'>
- *   declare projects?: NonAttribute<any[]>
+ *
+ *   \@HasMany(() => ProjectModel, 'kitchenSinkId')
+ *   projects: NonAttribute<ProjectModel[]>
+ *
+ *   \@HasOne(() => KitchenModel, 'kitchenId')
+ *   kitchen: NonAttribute<KitchenModel>
+ *
+ *   declare kitchenId: ForeignKey<number | null>
+ *
  *   get fullName(): NonAttribute<string> {
  *     return this.name
  *   }
+ *
  *   declare static associations: {
- *     projects: Association<KitchenSinkModel, any>
+ *     projects: Association<KitchenSinkModel, ProjectModel>
  *   }
- *   declare kitchenId: ForeignKey<number | null>
  * }
  *
  * type KitchenSink = KyselifyModel<KitchenSinkModel>

@@ -1,12 +1,29 @@
-import type {Kysely} from 'kysely'
+import type {Generated, GeneratedAlways, Kysely} from 'kysely'
 import {expectAssignable, expectError, expectType} from 'tsd'
+import {IsEqual} from 'type-fest'
 import type {KyselifyModel} from '../../../src/index.js'
-import {KitchenSinkModel} from '../../nodejs/models/kitchen-sink.model.js'
+import {KitchenSinkModel} from './kitchen-sink.model.js'
 
 type KitchenSink = KyselifyModel<KitchenSinkModel>
 
 interface Database {
   kitchenSink: KitchenSink
+}
+
+function testKyselifyModel() {
+  expectType<
+    IsEqual<
+      KitchenSink,
+      {
+        id: GeneratedAlways<number>
+        name: string
+        preferredName: string | null
+        createdAt: Generated<Date>
+        updatedAt: Generated<Date>
+        kitchenId: number | null
+      }
+    >
+  >(true)
 }
 
 async function testSelect(db: Kysely<Database>) {
