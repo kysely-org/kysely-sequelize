@@ -35,7 +35,7 @@
     "fmt:check": "prettier --check .",
     "lint": "eslint src --ext .ts",
     "prepack": "pnpm run lint && pnpm run build",
-    "test": "pnpm test:nodejs && pnpm test:typings",
+    "test": "pnpm build && pnpm test:nodejs && pnpm test:typings",
     "test:nodejs": "mocha ./tests/nodejs",
     "test:typings": "tsd tests/typings",
     "type-check": "tsc --noEmit"
