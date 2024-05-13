@@ -51,7 +51,7 @@
     "@types/node": "^20.12.11",
     "@types/pg": "^8.11.6",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
-    "@typescript-eslint/parser": "^7.8.0",
+    "@typescript-eslint/parser": "^7.9.0",
     "chai": "^4.4.1",
     "esbuild": "^0.21.1",
     "esbuild-runner": "^2.2.2",
