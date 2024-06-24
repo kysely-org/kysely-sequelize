@@ -70,7 +70,7 @@
     "reflect-metadata": "^0.2.2",
     "sequelize-typescript": "^2.1.6",
     "sqlite3": "^5.1.7",
-    "tedious": "^18.2.0",
+    "tedious": "^18.2.1",
     "tsd": "^0.31.1",
     "tsup": "^8.1.0",
     "type-fest": "^4.20.1",
