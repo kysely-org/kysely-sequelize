@@ -7,7 +7,7 @@ settings:
 dependencies:
   sequelize:
     specifier: '>= 6.0.0 < 7'
-    version: 6.35.2(mysql2@3.10.1)(pg-hstore@2.3.4)(pg@8.12.0)(sqlite3@5.1.7)(tedious@18.2.0)
+    version: 6.35.2(mysql2@3.10.1)(pg-hstore@2.3.4)(pg@8.12.0)(sqlite3@5.1.7)(tedious@18.2.1)
 
 devDependencies:
   '@tsconfig/node20':
@@ -86,8 +86,8 @@ devDependencies:
     specifier: ^5.1.7
     version: 5.1.7
   tedious:
-    specifier: ^18.2.0
-    version: 18.2.0
+    specifier: ^18.2.1
+    version: 18.2.1
   tsd:
     specifier: ^0.31.1
     version: 0.31.1
@@ -114,6 +114,12 @@ packages:
     dependencies:
       tslib: 2.6.2
 
+  /@azure/abort-controller@2.1.2:
+    resolution: {integrity: sha512-nBrLsEWm4J2u5LpAPjxADTlq3trDgVZZXHNKabeXZtpq3d3AbN/KGO82R87rdDz5/lYB024rtEf10/q0urNgsA==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      tslib: 2.6.2
+
   /@azure/core-auth@1.5.0:
     resolution: {integrity: sha512-udzoBuYG1VBoHVohDTrvKjyzel34zt77Bhp7dQntVGGD0ehVq48owENbBG8fIgkHRNUBQH5k1r0hpoMu5L8+kw==}
     engines: {node: '>=14.0.0'}
@@ -127,6 +133,20 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
+      '@azure/core-auth': 1.5.0
+      '@azure/core-rest-pipeline': 1.13.0
+      '@azure/core-tracing': 1.0.1
+      '@azure/core-util': 1.6.1
+      '@azure/logger': 1.0.4
+      tslib: 2.6.2
+    transitivePeerDependencies:
+      - supports-color
+
+  /@azure/core-client@1.9.2:
+    resolution: {integrity: sha512-kRdry/rav3fUKHl/aDLd/pDLcB+4pOFwPPTVEExuMyaI5r+JBbMWqRbCY1pn5BniDaU3lRxO9eaQ1AmSMehl/w==}
+    engines: {node: '>=18.0.0'}
+    dependencies:
+      '@azure/abort-controller': 2.1.2
       '@azure/core-auth': 1.5.0
       '@azure/core-rest-pipeline': 1.13.0
       '@azure/core-tracing': 1.0.1
@@ -189,19 +209,19 @@ packages:
       '@azure/abort-controller': 1.1.0
       tslib: 2.6.2
 
-  /@azure/identity@3.4.1:
-    resolution: {integrity: sha512-oQ/r5MBdfZTMIUcY5Ch8G7Vv9aIXDkEYyU4Dfqjim4MQN+LY2uiQ57P1JDopMLeHCsZxM4yy8lEdne3tM9Xhzg==}
-    engines: {node: '>=14.0.0'}
+  /@azure/identity@4.3.0:
+    resolution: {integrity: sha512-LHZ58/RsIpIWa4hrrE2YuJ/vzG1Jv9f774RfTTAVDZDriubvJ0/S5u4pnw4akJDlS0TiJb6VMphmVUFsWmgodQ==}
+    engines: {node: '>=18.0.0'}
     dependencies:
       '@azure/abort-controller': 1.1.0
       '@azure/core-auth': 1.5.0
-      '@azure/core-client': 1.7.3
+      '@azure/core-client': 1.9.2
       '@azure/core-rest-pipeline': 1.13.0
       '@azure/core-tracing': 1.0.1
       '@azure/core-util': 1.6.1
       '@azure/logger': 1.0.4
-      '@azure/msal-browser': 3.6.0
-      '@azure/msal-node': 2.6.0
+      '@azure/msal-browser': 3.17.0
+      '@azure/msal-node': 2.9.2
       events: 3.3.0
       jws: 4.0.0
       open: 8.4.2
@@ -234,21 +254,21 @@ packages:
     dependencies:
       tslib: 2.6.2
 
-  /@azure/msal-browser@3.6.0:
-    resolution: {integrity: sha512-FrFBJXRJMyWXjAjg4cUNZwEKktzfzD/YD9+S1kj2ors67hKoveam4aL0bZuCZU/jTiHTn0xDQGQh2ksCMXTXtA==}
+  /@azure/msal-browser@3.17.0:
+    resolution: {integrity: sha512-csccKXmW2z7EkZ0I3yAoW/offQt+JECdTIV/KrnRoZyM7wCSsQWODpwod8ZhYy7iOyamcHApR9uCh0oD1M+0/A==}
     engines: {node: '>=0.8.0'}
     dependencies:
-      '@azure/msal-common': 14.5.0
+      '@azure/msal-common': 14.12.0
 
-  /@azure/msal-common@14.5.0:
-    resolution: {integrity: sha512-Gx5rZbiZV/HiZ2nEKfjfAF/qDdZ4/QWxMvMo2jhIFVz528dVKtaZyFAOtsX2Ak8+TQvRsGCaEfuwJFuXB6tu1A==}
+  /@azure/msal-common@14.12.0:
+    resolution: {integrity: sha512-IDDXmzfdwmDkv4SSmMEyAniJf6fDu3FJ7ncOjlxkDuT85uSnLEhZi3fGZpoR7T4XZpOMx9teM9GXBgrfJgyeBw==}
     engines: {node: '>=0.8.0'}
 
-  /@azure/msal-node@2.6.0:
-    resolution: {integrity: sha512-RWAWCYYrSldIYC47oWtofIun41e6SB9TBYgGYsezq6ednagwo9ZRFyRsvl1NabmdTkdDDXRAABIdveeN2Gtd8w==}
-    engines: {node: 16|| 18 || 20}
+  /@azure/msal-node@2.9.2:
+    resolution: {integrity: sha512-8tvi6Cos3m+0KmRbPjgkySXi+UQU/QiuVRFnrxIwt5xZlEEFa69O04RTaNESGgImyBBlYbo2mfE8/U8Bbdk1WQ==}
+    engines: {node: '>=16'}
     dependencies:
-      '@azure/msal-common': 14.5.0
+      '@azure/msal-common': 14.12.0
       jsonwebtoken: 9.0.2
       uuid: 8.3.2
 
@@ -797,11 +817,6 @@ packages:
 
   /@types/ms@0.7.34:
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
-
-  /@types/node@20.14.6:
-    resolution: {integrity: sha512-JbA0XIJPL1IiNnU7PFxDXyfAwcwVVrOoqyzzyQTyMeVhBzkJVMSkC1LlVsRQ2lpqiY4n6Bb9oCS6lzDKVQxbZw==}
-    dependencies:
-      undici-types: 5.26.5
 
   /@types/node@20.14.7:
     resolution: {integrity: sha512-uTr2m2IbJJucF3KUxgnGOZvYbN0QgkGyWxG6973HCpMYFy2KfcgYuIwkJQMQkt1VbBMlvWRbpshFTLxnxCZjKQ==}
@@ -3849,10 +3864,10 @@ packages:
       '@types/validator': 13.12.0
       glob: 7.2.0
       reflect-metadata: 0.2.2
-      sequelize: 6.35.2(mysql2@3.10.1)(pg-hstore@2.3.4)(pg@8.12.0)(sqlite3@5.1.7)(tedious@18.2.0)
+      sequelize: 6.35.2(mysql2@3.10.1)(pg-hstore@2.3.4)(pg@8.12.0)(sqlite3@5.1.7)(tedious@18.2.1)
     dev: true
 
-  /sequelize@6.35.2(mysql2@3.10.1)(pg-hstore@2.3.4)(pg@8.12.0)(sqlite3@5.1.7)(tedious@18.2.0):
+  /sequelize@6.35.2(mysql2@3.10.1)(pg-hstore@2.3.4)(pg@8.12.0)(sqlite3@5.1.7)(tedious@18.2.1):
     resolution: {integrity: sha512-EdzLaw2kK4/aOnWQ7ed/qh3B6/g+1DvmeXr66RwbcqSm/+QRS9X0LDI5INBibsy4eNJHWIRPo3+QK0zL+IPBHg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
@@ -3901,7 +3916,7 @@ packages:
       semver: 7.6.2
       sequelize-pool: 7.1.0
       sqlite3: 5.1.7
-      tedious: 18.2.0
+      tedious: 18.2.1
       toposort-class: 1.0.1
       uuid: 8.3.2
       validator: 13.11.0
@@ -4237,11 +4252,11 @@ packages:
       mkdirp: 1.0.4
       yallist: 4.0.0
 
-  /tedious@18.2.0:
-    resolution: {integrity: sha512-PCELoE17gN71lk0A87+WITcIJ6uGagrV2hXVJT5ige/Yef+YCLVpQ/Je12rOZT7vBhVZoMp6MvaBmbfI8fw0ag==}
+  /tedious@18.2.1:
+    resolution: {integrity: sha512-DKsTgGBC0ZeZexAd5OObfeKd0Tlx3jx3kNoKImsxfBKdRuV216u9n6Sr+4w6vzn+S4r43XmWAXQwM7UkDkbIEg==}
     engines: {node: '>=18'}
     dependencies:
-      '@azure/identity': 3.4.1
+      '@azure/identity': 4.3.0
       '@azure/keyvault-keys': 4.7.2
       '@js-joda/core': 5.6.1
       '@types/node': 20.14.7
@@ -4573,7 +4588,7 @@ packages:
   /wkx@0.5.0:
     resolution: {integrity: sha512-Xng/d4Ichh8uN4l0FToV/258EjMGU9MGcA0HV2d9B/ZpZB3lqQm7nkOdZdm5GhKtLLhAE7PiVQwN4eN+2YJJUg==}
     dependencies:
-      '@types/node': 20.14.6
+      '@types/node': 20.14.7
 
   /workerpool@6.2.1:
     resolution: {integrity: sha512-ILEIE97kDZvF9Wb9f6h5aXK4swSlKGUcOEGiIYb2OOu/IrDU9iwj0fD//SsA6E5ibwJxpEvhullJY4Sl4GcpAw==}
