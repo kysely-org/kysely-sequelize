@@ -73,7 +73,7 @@
     "tedious": "^18.2.1",
     "tsd": "^0.31.1",
     "tsup": "^8.1.0",
-    "type-fest": "^4.20.1",
+    "type-fest": "^4.21.0",
     "typescript": "^5.5.3"
   },
   "sideEffects": false
