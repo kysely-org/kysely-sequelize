@@ -25,8 +25,8 @@ importers:
         specifier: ^22.5.0
         version: 22.5.0
       '@types/pg':
-        specifier: ^8.11.6
-        version: 8.11.6
+        specifier: ^8.11.7
+        version: 8.11.7
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.3.0
         version: 8.3.0(@typescript-eslint/parser@8.3.0(eslint@8.57.0)(typescript@5.5.4))(eslint@8.57.0)(typescript@5.5.4)
@@ -555,8 +555,8 @@ packages:
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
 
-  '@types/pg@8.11.6':
-    resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
+  '@types/pg@8.11.7':
+    resolution: {integrity: sha512-k4VGqp1LQzJP5pSK2TR3bJGr9CnErXeRubUEtJu+l1hFGbUwKyMZEjLAlWpfGkrZAatz0O4jP4YPqDepv8CRbQ==}
 
   '@types/readable-stream@4.0.10':
     resolution: {integrity: sha512-AbUKBjcC8SHmImNi4yK2bbjogQlkFSg7shZCcicxPQapniOlajG8GCc39lvXzCWX4lLRRs7DM3VAeSlqmEVZUA==}
@@ -3150,7 +3150,7 @@ snapshots:
 
   '@types/normalize-package-data@2.4.4': {}
 
-  '@types/pg@8.11.6':
+  '@types/pg@8.11.7':
     dependencies:
       '@types/node': 22.5.0
       pg-protocol: 1.6.1
