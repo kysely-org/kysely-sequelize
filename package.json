@@ -61,7 +61,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "kysely": "^0.27.4",
     "mocha": "^10.8.2",
-    "mysql2": "^3.11.3",
+    "mysql2": "^3.11.4",
     "pg": "^8.13.1",
     "pg-hstore": "^2.3.4",
     "prettier": "^3.3.3",
