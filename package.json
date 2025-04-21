@@ -59,7 +59,7 @@
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.6",
-    "kysely": "^0.28.0",
+    "kysely": "^0.28.1",
     "mocha": "^11.1.0",
     "mysql2": "^3.14.0",
     "pg": "^8.14.1",
