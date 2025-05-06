@@ -25,8 +25,8 @@ importers:
         specifier: ^22.15.3
         version: 22.15.3
       '@types/pg':
-        specifier: ^8.11.14
-        version: 8.11.14
+        specifier: ^8.12.0
+        version: 8.12.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.26.1
         version: 8.26.1(@typescript-eslint/parser@8.26.1(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)(typescript@5.8.3)
@@ -578,14 +578,17 @@ packages:
   '@types/ms@0.7.34':
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
 
+  '@types/node@22.15.13':
+    resolution: {integrity: sha512-mkmz+UBGCF/ssSObTp1McwQEvIjO2hUnVvZzck61l0su7btUill8OSvzA4N62+AtkJgMhiniyD+wEL5kocZaEA==}
+
   '@types/node@22.15.3':
     resolution: {integrity: sha512-lX7HFZeHf4QG/J7tBZqrCAXwz9J5RD56Y6MpP0eJkka8p+K0RY/yBTW7CYFJ4VGCclxqOLKmiGP5juQc6MKgcw==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
 
-  '@types/pg@8.11.14':
-    resolution: {integrity: sha512-qyD11E5R3u0eJmd1lB0WnWKXJGA7s015nyARWljfz5DcX83TKAIlY+QrmvzQTsbIe+hkiFtkyL2gHC6qwF6Fbg==}
+  '@types/pg@8.12.0':
+    resolution: {integrity: sha512-a9Z11ecnpNPFu2iT4Qo9SSYgM2r1l4UqLIQ454zhCDRzxqOh/vsi57FFovbc64oBGPBotXw5cRhUQtJEHCb/OA==}
 
   '@types/readable-stream@4.0.10':
     resolution: {integrity: sha512-AbUKBjcC8SHmImNi4yK2bbjogQlkFSg7shZCcicxPQapniOlajG8GCc39lvXzCWX4lLRRs7DM3VAeSlqmEVZUA==}
@@ -3174,21 +3177,25 @@ snapshots:
 
   '@types/ms@0.7.34': {}
 
+  '@types/node@22.15.13':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@22.15.3':
     dependencies:
       undici-types: 6.21.0
 
   '@types/normalize-package-data@2.4.4': {}
 
-  '@types/pg@8.11.14':
+  '@types/pg@8.12.0':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.15.13
       pg-protocol: 1.9.5
       pg-types: 4.0.2
 
   '@types/readable-stream@4.0.10':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.15.13
       safe-buffer: 5.1.2
 
   '@types/validator@13.12.0': {}
@@ -5596,7 +5603,7 @@ snapshots:
 
   wkx@0.5.0:
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.15.13
 
   workerpool@6.5.1: {}
 
