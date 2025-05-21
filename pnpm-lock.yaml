@@ -22,8 +22,8 @@ importers:
         specifier: ^10.0.10
         version: 10.0.10
       '@types/node':
-        specifier: ^22.15.20
-        version: 22.15.20
+        specifier: ^22.15.21
+        version: 22.15.21
       '@types/pg':
         specifier: ^8.15.2
         version: 8.15.2
@@ -83,7 +83,7 @@ importers:
         version: 0.2.2
       sequelize-typescript:
         specifier: ^2.1.6
-        version: 2.1.6(@types/node@22.15.20)(@types/validator@13.12.0)(reflect-metadata@0.2.2)(sequelize@6.35.2(mysql2@3.14.1)(pg-hstore@2.3.4)(pg@8.16.0)(sqlite3@5.1.7)(tedious@19.0.0))
+        version: 2.1.6(@types/node@22.15.21)(@types/validator@13.12.0)(reflect-metadata@0.2.2)(sequelize@6.35.2(mysql2@3.14.1)(pg-hstore@2.3.4)(pg@8.16.0)(sqlite3@5.1.7)(tedious@19.0.0))
       sqlite3:
         specifier: ^5.1.7
         version: 5.1.7
@@ -580,8 +580,8 @@ packages:
   '@types/ms@0.7.34':
     resolution: {integrity: sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==}
 
-  '@types/node@22.15.20':
-    resolution: {integrity: sha512-A6BohGFRGHAscJsTslDCA9JG7qSJr/DWUvrvY8yi9IgnGtMxCyat7vvQ//MFa0DnLsyuS3wYTpLdw4Hf+Q5JXw==}
+  '@types/node@22.15.21':
+    resolution: {integrity: sha512-EV/37Td6c+MgKAbkcLG6vqZ2zEYHD7bvSrzqqs2RIhbA6w3x+Dqz8MZM3sP6kGTeLrdoOgKZe+Xja7tUB2DNkQ==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -3212,7 +3212,7 @@ snapshots:
 
   '@types/ms@0.7.34': {}
 
-  '@types/node@22.15.20':
+  '@types/node@22.15.21':
     dependencies:
       undici-types: 6.21.0
 
@@ -3220,13 +3220,13 @@ snapshots:
 
   '@types/pg@8.15.2':
     dependencies:
-      '@types/node': 22.15.20
+      '@types/node': 22.15.21
       pg-protocol: 1.10.0
       pg-types: 4.0.2
 
   '@types/readable-stream@4.0.10':
     dependencies:
-      '@types/node': 22.15.20
+      '@types/node': 22.15.21
       safe-buffer: 5.1.2
 
   '@types/validator@13.12.0': {}
@@ -5181,9 +5181,9 @@ snapshots:
 
   sequelize-pool@7.1.0: {}
 
-  sequelize-typescript@2.1.6(@types/node@22.15.20)(@types/validator@13.12.0)(reflect-metadata@0.2.2)(sequelize@6.35.2(mysql2@3.14.1)(pg-hstore@2.3.4)(pg@8.16.0)(sqlite3@5.1.7)(tedious@19.0.0)):
+  sequelize-typescript@2.1.6(@types/node@22.15.21)(@types/validator@13.12.0)(reflect-metadata@0.2.2)(sequelize@6.35.2(mysql2@3.14.1)(pg-hstore@2.3.4)(pg@8.16.0)(sqlite3@5.1.7)(tedious@19.0.0)):
     dependencies:
-      '@types/node': 22.15.20
+      '@types/node': 22.15.21
       '@types/validator': 13.12.0
       glob: 7.2.0
       reflect-metadata: 0.2.2
@@ -5446,7 +5446,7 @@ snapshots:
       '@azure/identity': 4.3.0
       '@azure/keyvault-keys': 4.7.2
       '@js-joda/core': 5.6.1
-      '@types/node': 22.15.20
+      '@types/node': 22.15.21
       bl: 6.0.12
       iconv-lite: 0.6.3
       js-md4: 0.3.2
@@ -5671,7 +5671,7 @@ snapshots:
 
   wkx@0.5.0:
     dependencies:
-      '@types/node': 22.15.20
+      '@types/node': 22.15.21
 
   workerpool@6.5.1: {}
 
