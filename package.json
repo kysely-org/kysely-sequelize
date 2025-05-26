@@ -60,7 +60,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.4.0",
     "kysely": "^0.28.2",
-    "mocha": "^11.4.0",
+    "mocha": "^11.5.0",
     "mysql2": "^3.14.1",
     "pg": "^8.16.0",
     "pg-hstore": "^2.3.4",
