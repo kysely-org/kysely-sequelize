@@ -48,7 +48,7 @@
     "@tsconfig/node20": "^20.1.5",
     "@types/chai": "^4.3.12",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.15.24",
+    "@types/node": "^22.15.30",
     "@types/pg": "^8.15.4",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
